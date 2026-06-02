@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lined Up — Baseball Line Up Manager</title>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --gd:#1B5E20;--g:#2E7D32;--gm:#388E3C;--gl:#4CAF50;--gp:#E8F5E9;
+  --y:#F9A825;--yb:#FFCA28;--yl:#FFF9C4;--yd:#F57F17;
+  --bg:#F1F8E9;--w:#fff;
+  --c1:#F5F5F5;--c2:#E0E0E0;--c4:#BDBDBD;--c6:#757575;--c8:#424242;
+  --red:#C62828;--redbg:#FFEBEE;--warnbg:#FFF8E1;
+  --r:10px;--sh:0 1px 6px rgba(0,0,0,.1)
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--c8);min-height:100vh}
+
+/* NAV */
+.nav{background:var(--gd);color:#fff;padding:0 1rem;height:56px;display:flex;align-items:center;gap:.75rem;box-shadow:0 2px 6px rgba(0,0,0,.3);position:sticky;top:0;z-index:100}
+.logo{font-size:1.2rem;font-weight:800;cursor:pointer;color:var(--yb);letter-spacing:-.01em;display:flex;align-items:center;gap:.3rem;flex-shrink:0}
+.logo:hover{opacity:.9}
+.breadcrumb{font-size:.8rem;opacity:.75;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nav-right{margin-left:auto;display:flex;align-items:center;gap:.25rem;flex-shrink:0}
+.nav-user{color:#fff!important;font-size:.82rem;padding:.35rem .65rem;opacity:.9}
+.nav-user:hover{background:rgba(255,255,255,.15)!important;opacity:1}
+.nav-out{color:var(--yb)!important;font-size:.78rem;padding:.35rem .6rem;border:1px solid rgba(255,201,40,.4);border-radius:6px}
+.nav-out:hover{background:rgba(249,168,37,.15)!important}
+
+/* LAYOUT */
+.main{max-width:880px;margin:0 auto;padding:1.25rem 1rem}
+
+/* CARD */
+.card{background:var(--w);border-radius:var(--r);padding:1.25rem;box-shadow:var(--sh);margin-bottom:1rem}
+.card-title{font-size:.8rem;font-weight:700;color:var(--gd);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.85rem;padding-bottom:.5rem;border-bottom:2px solid var(--gp)}
+
+/* PAGE TITLE */
+.ph{margin-bottom:1.25rem}
+.ph h1{font-size:1.55rem;font-weight:800;color:var(--gd)}
+.ph p{color:var(--c6);margin-top:.2rem;font-size:.9rem}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:.35rem;padding:.5rem 1rem;border-radius:8px;font-size:.875rem;font-weight:600;cursor:pointer;border:none;font-family:inherit;transition:opacity .15s,transform .1s;text-decoration:none}
+.btn:hover{opacity:.85}.btn:active{transform:scale(.97)}
+.btn-primary{background:var(--g);color:#fff}
+.btn-secondary{background:var(--y);color:var(--gd)}
+.btn-outline{background:transparent;border:2px solid var(--g);color:var(--g)}
+.btn-danger{background:var(--red);color:#fff}
+.btn-ghost{background:transparent;color:var(--c6)}.btn-ghost:hover{background:var(--c1)}
+.btn-sm{padding:.3rem .65rem;font-size:.8rem}
+.btn-lg{padding:.7rem 1.4rem;font-size:1rem}
+.w100{width:100%;justify-content:center}
+
+/* FORM */
+.fg{margin-bottom:1rem}
+.label{display:block;font-size:.78rem;font-weight:700;color:var(--c6);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.35rem}
+.inp{width:100%;padding:.6rem .85rem;border:2px solid var(--c2);border-radius:8px;font-size:.95rem;font-family:inherit;transition:border-color .15s;background:var(--w)}
+.inp:focus{outline:none;border-color:var(--g)}
+.inp:disabled{opacity:.6;cursor:not-allowed}
+.sel{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23757575' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:2rem}
+
+/* RADIO */
+.radio-grp{display:flex;gap:.75rem;flex-wrap:wrap}
+.radio-opt{flex:1;min-width:90px}
+.radio-opt input{display:none}
+.radio-opt label{display:block;padding:.7rem 1rem;border:2px solid var(--c2);border-radius:8px;cursor:pointer;text-align:center;font-weight:600;transition:all .15s;background:var(--w);font-size:.9rem}
+.radio-opt input:checked+label{border-color:var(--g);background:var(--gp);color:var(--gd)}
+
+/* AUTH PAGES */
+.auth-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1rem;background:linear-gradient(135deg,var(--gd) 0%,var(--gm) 100%)}
+.auth-card{background:var(--w);border-radius:16px;padding:2rem;width:100%;max-width:400px;box-shadow:0 8px 32px rgba(0,0,0,.2)}
+.auth-logo{font-size:1.6rem;font-weight:900;color:var(--gd);text-align:center;margin-bottom:.2rem}
+.auth-sub{text-align:center;color:var(--c6);font-size:.85rem;margin-bottom:1.5rem}
+.auth-title{font-size:1.2rem;font-weight:700;color:var(--gd);margin-bottom:1rem}
+.auth-err{background:var(--redbg);color:var(--red);border:1px solid var(--red);border-radius:8px;padding:.6rem .9rem;font-size:.85rem;margin-bottom:1rem;display:none}
+.auth-links{display:flex;justify-content:space-between;margin-top:1rem;flex-wrap:wrap;gap:.5rem}
+.auth-links a{font-size:.82rem;color:var(--g);text-decoration:none;font-weight:600}
+.auth-links a:hover{text-decoration:underline}
+
+/* LOADING */
+.loading-screen{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;color:var(--gd)}
+.loading-ball{font-size:3rem;animation:spin 2s linear infinite}
+@keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+
+/* HOME */
+.home-hero{text-align:center;padding:2rem 1rem 1.5rem}
+.home-hero h1{font-size:2.4rem;font-weight:900;color:var(--gd)}
+.home-sub{font-size:1rem;color:var(--c6);margin-top:.25rem}
+.home-greet{font-size:.95rem;color:var(--gm);margin-top:.5rem;font-weight:600}
+.home-icon{font-size:3.5rem;display:block;margin-bottom:.5rem}
+.home-cards{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:2rem}
+@media(max-width:480px){.home-cards{grid-template-columns:1fr}}
+.home-card{border-radius:16px;padding:2rem 1.5rem;cursor:pointer;transition:transform .15s,box-shadow .15s;text-align:center;border:none;font-family:inherit}
+.home-card:hover{transform:translateY(-3px);box-shadow:0 6px 20px rgba(0,0,0,.15)}
+.home-card-green{background:var(--g);color:#fff}
+.home-card-yellow{background:var(--y);color:var(--gd)}
+.hc-icon{font-size:2.5rem;display:block;margin-bottom:.65rem}
+.hc-title{font-size:1.2rem;font-weight:700}
+.hc-desc{font-size:.85rem;margin-top:.35rem;opacity:.85}
+
+/* TEAMS */
+.team-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:1rem;margin-top:1rem}
+.team-card{background:var(--w);border-radius:var(--r);padding:1.1rem;cursor:pointer;border:2px solid transparent;transition:all .15s;box-shadow:var(--sh)}
+.team-card:hover{border-color:var(--gl);box-shadow:0 3px 12px rgba(46,125,50,.15)}
+.tc-name{font-size:1.1rem;font-weight:700;color:var(--gd)}
+.tc-meta{font-size:.8rem;color:var(--c6);margin-top:.25rem}
+.tc-badge{display:inline-block;background:var(--yl);color:var(--yd);border-radius:12px;padding:.15rem .6rem;font-size:.75rem;font-weight:600;margin-top:.5rem}
+
+/* PLAYER LIST */
+.plist{list-style:none}
+.pitem{display:flex;align-items:center;gap:.5rem;padding:.5rem 0;border-bottom:1px solid var(--c1)}
+.pitem:last-child{border-bottom:none}
+.pnum{width:24px;height:24px;background:var(--gp);color:var(--gd);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;flex-shrink:0}
+.padd-row{display:flex;gap:.5rem;margin-top:.75rem}
+.padd-row .inp{flex:1}
+
+/* HISTORY TABLE */
+.htable{width:100%;border-collapse:collapse;font-size:.88rem}
+.htable th{text-align:left;padding:.5rem .75rem;background:var(--gp);color:var(--gd);font-weight:700;font-size:.75rem;text-transform:uppercase;letter-spacing:.05em}
+.htable td{padding:.6rem .75rem;border-bottom:1px solid var(--c1);vertical-align:middle}
+.htable tr:last-child td{border-bottom:none}
+.htable tr:hover td{background:var(--c1)}
+.score-badge{display:inline-flex;align-items:center;background:var(--yl);border:1px solid var(--y);border-radius:20px;padding:.15rem .7rem;font-size:.82rem;font-weight:700;color:var(--gd)}
+
+/* BATTING ORDER */
+.blist{list-style:none}
+.bitem{display:flex;align-items:center;gap:.65rem;padding:.55rem .75rem;background:var(--w);border:1.5px solid var(--c2);border-radius:8px;margin-bottom:.35rem;cursor:grab;user-select:none;transition:box-shadow .15s}
+.bitem:hover{box-shadow:0 2px 8px rgba(0,0,0,.1)}
+.bitem.dragging{opacity:.45;box-shadow:0 4px 12px rgba(0,0,0,.2)}
+.bitem.drag-over{border-color:var(--g);background:var(--gp)}
+.dhandle{color:var(--c4);font-size:1rem;cursor:grab;letter-spacing:-.05em}
+.bnum{width:26px;height:26px;background:var(--g);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;flex-shrink:0}
+.bname{flex:1;font-weight:500}
+.arrowbtns{display:flex;flex-direction:column;gap:2px}
+.arrowbtn{width:22px;height:18px;border:1px solid var(--c2);border-radius:4px;background:#fff;cursor:pointer;font-size:.65rem;display:flex;align-items:center;justify-content:center;padding:0;line-height:1;transition:all .1s}
+.arrowbtn:hover:not(:disabled){background:var(--gp);border-color:var(--g);color:var(--gd)}
+.arrowbtn:disabled{opacity:.3;cursor:not-allowed}
+.drop-btn{margin-left:4px;width:26px;height:26px;border-radius:50%;border:1.5px solid var(--c2);background:#fff;color:var(--c6);cursor:pointer;font-size:.8rem;display:flex;align-items:center;justify-content:center;padding:0;transition:all .15s;flex-shrink:0}
+.drop-btn:hover{background:var(--redbg);border-color:var(--red);color:var(--red)}
+
+/* POSITION GRID */
+.pgwrap{overflow-x:auto;border-radius:8px;border:1px solid var(--c2)}
+.pgrid{border-collapse:collapse;white-space:nowrap;min-width:100%}
+.pgrid th{padding:.6rem .5rem;background:var(--g);color:#fff;font-weight:700;font-size:.82rem;text-align:center;border:1px solid var(--gm)}
+.pgrid th:first-child{text-align:left;min-width:140px;background:var(--gd);position:sticky;left:0;z-index:2}
+.pgrid td{padding:.35rem .4rem;border:1px solid var(--c1);text-align:center;vertical-align:middle}
+.pgrid td:first-child{text-align:left;background:var(--gp);font-weight:500;font-size:.85rem;position:sticky;left:0;border-right:2px solid var(--c2)}
+.pos-sel{padding:.28rem .35rem;border:1.5px solid var(--c2);border-radius:6px;font-size:.8rem;font-family:inherit;font-weight:600;background:var(--w);cursor:pointer;min-width:58px;transition:border-color .1s}
+.pos-sel:focus{outline:none;border-color:var(--g)}
+.pos-sel.dup{border-color:var(--red)!important;background:var(--redbg)}
+.pos-sel.unset{color:var(--c4)}
+.pos-sel.bench{background:var(--c1);color:var(--c6);font-style:italic}
+.pos-val{font-size:.82rem;font-weight:600;padding:.2rem .4rem;border-radius:4px;display:inline-block}
+.pos-val.empty{color:var(--c4)}
+.bench-val{background:var(--c2)!important;color:var(--c6)!important;font-style:italic}
+
+/* SETUP: STEPPER */
+.stepper{display:flex;align-items:center;gap:1rem}
+.stbtn{width:36px;height:36px;border-radius:50%;border:2px solid var(--g);background:var(--w);color:var(--g);font-size:1.2rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;font-family:inherit}
+.stbtn:hover{background:var(--g);color:#fff}
+.stbtn:disabled{opacity:.35;cursor:not-allowed}
+.stval{font-size:1.5rem;font-weight:700;color:var(--gd);min-width:40px;text-align:center}
+
+/* SETUP: PLAYER CHECKS */
+.pchecks{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:.5rem;margin-top:.5rem}
+.pchk{display:flex;align-items:center;gap:.5rem;padding:.55rem .75rem;border:2px solid var(--c2);border-radius:8px;cursor:pointer;transition:all .15s;user-select:none}
+.pchk.sel{border-color:var(--g);background:var(--gp)}
+.circle{width:20px;height:20px;border:2px solid var(--c4);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.72rem;transition:all .15s;color:transparent}
+.pchk.sel .circle{background:var(--g);border-color:var(--g);color:#fff}
+
+/* SECTION HEADER */
+.sh2{display:flex;align-items:center;gap:.65rem;margin:1.1rem 0 .65rem}
+.sh2 h3{font-size:.85rem;font-weight:800;color:var(--gd);text-transform:uppercase;letter-spacing:.07em}
+.sh2-badge{background:var(--y);color:var(--gd);border-radius:12px;padding:.15rem .6rem;font-size:.72rem;font-weight:700}
+
+/* WARN / MODAL */
+.warn{background:var(--warnbg);border:1px solid var(--y);border-radius:8px;padding:.55rem .85rem;font-size:.82rem;color:var(--yd);margin-bottom:.75rem;display:none}
+.warn.show{display:block}
+.moverlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:200;padding:1rem}
+.modal{background:var(--w);border-radius:16px;padding:1.5rem;max-width:360px;width:100%;box-shadow:0 10px 40px rgba(0,0,0,.2)}
+.modal-title{font-size:1.1rem;font-weight:700;color:var(--gd);margin-bottom:1rem}
+.score-row{display:grid;grid-template-columns:1fr auto 1fr;gap:.75rem;align-items:end;margin-bottom:1rem}
+.score-vs{font-weight:700;color:var(--c6);text-align:center;padding-bottom:.6rem}
+
+/* PROFILE */
+.profile-avatar{width:64px;height:64px;background:var(--g);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.6rem;font-weight:700;margin-bottom:1rem}
+.danger-zone{border:1.5px solid var(--red)!important}
+.danger-title{color:var(--red)!important}
+
+/* UTIL */
+.row{display:flex;align-items:center}
+.flex-spread{display:flex;justify-content:space-between;align-items:center;margin-top:1rem;gap:.75rem}
+.gap1{gap:.5rem}.gap2{gap:1rem}
+.mb1{margin-bottom:.5rem}.mt1{margin-top:.5rem}.mt2{margin-top:1rem}
+.text-sm{font-size:.85rem}.text-muted{color:var(--c6)}
+.badge{display:inline-block;background:var(--yl);color:var(--yd);border-radius:12px;padding:.15rem .6rem;font-size:.75rem;font-weight:700}
+.empty-state{text-align:center;padding:2rem;color:var(--c6)}
+.empty-state p{margin-top:.5rem}
+</style>
+</head>
+<body>
+<div id="app"><div class="loading-screen"><div class="loading-ball">⚾</div><p>Loading…</p></div></div>
+<div id="modal-root"></div>
+
+<script>
+// ══════════════════════════════════════════════════════════════════
+//  🔥 FIREBASE CONFIG
+//  Paste your Firebase project config here (from Firebase Console →
+//  Project Settings → Your apps → web app → firebaseConfig)
+// ══════════════════════════════════════════════════════════════════
+const FIREBASE_CONFIG = {
+  apiKey:            "PASTE_YOUR_API_KEY",
+  authDomain:        "PASTE_YOUR_AUTH_DOMAIN",
+  projectId:         "PASTE_YOUR_PROJECT_ID",
+  storageBucket:     "PASTE_YOUR_STORAGE_BUCKET",
+  messagingSenderId: "PASTE_YOUR_MESSAGING_SENDER_ID",
+  appId:             "PASTE_YOUR_APP_ID"
+};
+
+// ── INIT ──────────────────────────────────────────────────────────
+firebase.initializeApp(FIREBASE_CONFIG);
+const auth = firebase.auth();
+const db   = firebase.firestore();
+
+// ── STATE ─────────────────────────────────────────────────────────
+let currentUser = null;
+let authReady   = false;
+let page        = 'loading';
+let pgData      = {};
+let LS          = null;   // lineup builder working state
+let dragIdx     = null;
+let setupInnings = 6;
+let selPlayers  = new Set();
+let cache       = { teams:[], lineups:[] };
+let unsubs      = [];
+
+// ── HELPERS ───────────────────────────────────────────────────────
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2) }
+function esc(s){ return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') }
+function fmtDate(d){ if(!d)return'—'; return new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) }
+function positions(pc){ return pc===10?['—','C','P','1B','2B','SS','3B','LF','LCF','RCF','RF','BN']:['—','C','P','1B','2B','SS','3B','LF','CF','RF','BN'] }
+
+// ── FIRESTORE LISTENERS ───────────────────────────────────────────
+function setupListeners(){
+  const u = currentUser.uid;
+  const u1 = db.collection(`users/${u}/teams`).orderBy('name')
+    .onSnapshot(snap=>{ cache.teams=snap.docs.map(d=>d.data()); if(authReady)render() });
+  const u2 = db.collection(`users/${u}/lineups`).orderBy('date','desc')
+    .onSnapshot(snap=>{ cache.lineups=snap.docs.map(d=>d.data()); if(authReady)render() });
+  unsubs=[u1,u2];
+}
+function teardownListeners(){ unsubs.forEach(u=>u()); unsubs=[]; cache={teams:[],lineups:[]} }
+
+// ── STORE ─────────────────────────────────────────────────────────
+const S = {
+  teams()          { return cache.teams },
+  team(id)         { return cache.teams.find(t=>t.id===id)||null },
+  lineups()        { return cache.lineups },
+  lineup(id)       { return cache.lineups.find(l=>l.id===id)||null },
+  teamLineups(tid) { return cache.lineups.filter(l=>l.teamId===tid) },
+
+  async addTeam(name){
+    const id=uid(); const t={id,name,players:[],createdAt:new Date().toISOString()};
+    cache.teams=[...cache.teams,t].sort((a,b)=>a.name.localeCompare(b.name));
+    await db.doc(`users/${currentUser.uid}/teams/${id}`).set(t);
+  },
+  async renameTeam(id,name){
+    cache.teams=cache.teams.map(t=>t.id===id?{...t,name}:t);
+    await db.doc(`users/${currentUser.uid}/teams/${id}`).update({name});
+  },
+  async deleteTeam(id){
+    const uid_=currentUser.uid; const batch=db.batch();
+    cache.teams=cache.teams.filter(t=>t.id!==id);
+    cache.lineups.filter(l=>l.teamId===id).forEach(l=>{ batch.delete(db.doc(`users/${uid_}/lineups/${l.id}`)) });
+    cache.lineups=cache.lineups.filter(l=>l.teamId!==id);
+    batch.delete(db.doc(`users/${uid_}/teams/${id}`));
+    await batch.commit();
+  },
+  async addPlayer(teamId,name){
+    const t=S.team(teamId); if(!t)return;
+    const players=[...t.players,{id:uid(),name}];
+    cache.teams=cache.teams.map(x=>x.id===teamId?{...x,players}:x);
+    await db.doc(`users/${currentUser.uid}/teams/${teamId}`).update({players});
+  },
+  async removePlayer(teamId,playerId){
+    const t=S.team(teamId); if(!t)return;
+    const players=t.players.filter(p=>p.id!==playerId);
+    cache.teams=cache.teams.map(x=>x.id===teamId?{...x,players}:x);
+    await db.doc(`users/${currentUser.uid}/teams/${teamId}`).update({players});
+  },
+  async upsertLineup(l){
+    const idx=cache.lineups.findIndex(x=>x.id===l.id);
+    if(idx>=0)cache.lineups[idx]=l; else cache.lineups.unshift(l);
+    await db.doc(`users/${currentUser.uid}/lineups/${l.id}`).set(l);
+  },
+  async deleteLineup(id){
+    cache.lineups=cache.lineups.filter(l=>l.id!==id);
+    await db.doc(`users/${currentUser.uid}/lineups/${id}`).delete();
+  },
+  async setScore(id,ourScore,theirScore){
+    cache.lineups=cache.lineups.map(l=>l.id===id?{...l,ourScore,theirScore}:l);
+    await db.doc(`users/${currentUser.uid}/lineups/${id}`).update({ourScore,theirScore});
+  }
+};
+
+// ── ROUTER ────────────────────────────────────────────────────────
+function nav(p,data={}){ page=p; pgData=data; render() }
+function render(){ document.getElementById('app').innerHTML=buildPage(); initPage() }
+function buildPage(){
+  if(!authReady) return`<div class="loading-screen"><div class="loading-ball">⚾</div><p>Loading…</p></div>`;
+  if(!currentUser){ return page==='register'?pageRegister():pageLogin() }
+  switch(page){
+    case 'profile': return pageProfile();
+    case 'teams':   return pageTeams();
+    case 'team':    return pageTeam();
+    case 'setup':   return pageSetup();
+    case 'build':   return pageBuild();
+    default:        return pageHome();
+  }
+}
+
+// ── NAV BAR ───────────────────────────────────────────────────────
+function navbar(bc=''){
+  const name=esc(currentUser?.displayName||currentUser?.email?.split('@')[0]||'Coach');
+  return`<nav class="nav">
+    <span class="logo" onclick="nav('home')">⚾ Lined Up</span>
+    ${bc?`<span class="breadcrumb">/ ${bc}</span>`:''}
+    <div class="nav-right">
+      <button class="btn btn-ghost nav-user" onclick="nav('profile')">👤 ${name}</button>
+      <button class="btn nav-out" onclick="doLogout()">Sign out</button>
+    </div>
+  </nav>`;
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  AUTH PAGES
+// ══════════════════════════════════════════════════════════════════
+function pageLogin(){
+  return`<div class="auth-wrap"><div class="auth-card">
+    <div class="auth-logo">⚾ Lined Up</div>
+    <div class="auth-sub">Baseball Line Up Manager</div>
+    <h2 class="auth-title">Sign In</h2>
+    <div id="auth-err" class="auth-err"></div>
+    <div class="fg"><label class="label">Email</label>
+      <input id="a-email" class="inp" type="email" placeholder="you@example.com" autocomplete="email" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <div class="fg"><label class="label">Password</label>
+      <input id="a-pass" class="inp" type="password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <button class="btn btn-primary w100 btn-lg" onclick="doLogin()">Sign In</button>
+    <div class="auth-links">
+      <a href="#" onclick="nav('register');return false">Create an account</a>
+      <a href="#" onclick="doForgotPw();return false">Forgot password?</a>
+    </div>
+  </div></div>`;
+}
+
+function pageRegister(){
+  return`<div class="auth-wrap"><div class="auth-card">
+    <div class="auth-logo">⚾ Lined Up</div>
+    <div class="auth-sub">Baseball Line Up Manager</div>
+    <h2 class="auth-title">Create Account</h2>
+    <div id="auth-err" class="auth-err"></div>
+    <div class="fg"><label class="label">Your Name</label>
+      <input id="a-name" class="inp" type="text" placeholder="e.g. Coach Mike" autocomplete="name"></div>
+    <div class="fg"><label class="label">Username</label>
+      <input id="a-user" class="inp" type="text" placeholder="e.g. coachprice22" autocomplete="username"></div>
+    <div class="fg"><label class="label">Email</label>
+      <input id="a-email" class="inp" type="email" placeholder="you@example.com" autocomplete="email"></div>
+    <div class="fg"><label class="label">Password <span style="font-weight:400;color:var(--c6)">(min 6 characters)</span></label>
+      <input id="a-pass" class="inp" type="password" placeholder="••••••••" autocomplete="new-password"></div>
+    <div class="fg"><label class="label">Confirm Password</label>
+      <input id="a-pass2" class="inp" type="password" placeholder="••••••••" autocomplete="new-password" onkeydown="if(event.key==='Enter')doRegister()"></div>
+    <button class="btn btn-primary w100 btn-lg" onclick="doRegister()">Create Account</button>
+    <div class="auth-links" style="justify-content:center">
+      <a href="#" onclick="nav('login');return false">Already have an account? Sign in</a>
+    </div>
+  </div></div>`;
+}
+
+// ── AUTH ACTIONS ──────────────────────────────────────────────────
+function authErr(msg){ const el=document.getElementById('auth-err'); if(el){el.textContent=msg;el.style.display=msg?'block':'none'} }
+function friendlyErr(e){
+  return({'auth/wrong-password':'Wrong password — please try again.','auth/invalid-credential':'Wrong email or password.','auth/user-not-found':'No account found with that email.','auth/email-already-in-use':'An account with this email already exists.','auth/weak-password':'Password must be at least 6 characters.','auth/invalid-email':'Please enter a valid email address.','auth/too-many-requests':'Too many attempts. Please wait and try again.'}[e.code]||e.message||'Something went wrong.');
+}
+
+async function doLogin(){
+  const email=document.getElementById('a-email')?.value.trim();
+  const pass=document.getElementById('a-pass')?.value;
+  if(!email||!pass){authErr('Please enter your email and password.');return}
+  try{ await auth.signInWithEmailAndPassword(email,pass) }
+  catch(e){ authErr(friendlyErr(e)) }
+}
+
+async function doRegister(){
+  const name  = document.getElementById('a-name')?.value.trim();
+  const uname = document.getElementById('a-user')?.value.trim();
+  const email = document.getElementById('a-email')?.value.trim();
+  const pass  = document.getElementById('a-pass')?.value;
+  const pass2 = document.getElementById('a-pass2')?.value;
+  if(!name){authErr('Please enter your name.');return}
+  if(!uname){authErr('Please enter a username.');return}
+  if(!/^[a-zA-Z0-9_]{3,20}$/.test(uname)){authErr('Username: 3-20 characters, letters/numbers/underscores only.');return}
+  if(!email){authErr('Please enter your email.');return}
+  if(!pass){authErr('Please enter a password.');return}
+  if(pass!==pass2){authErr('Passwords do not match.');return}
+  try{
+    const cred=await auth.createUserWithEmailAndPassword(email,pass);
+    await cred.user.updateProfile({displayName:name});
+    // store username in Firestore
+    await db.doc(`usernames/${uname}`).set({uid:cred.user.uid});
+    await db.doc(`users/${cred.user.uid}/profile/info`).set({name,username:uname,email,createdAt:new Date().toISOString()});
+  }catch(e){ authErr(friendlyErr(e)) }
+}
+
+function doLogout(){ auth.signOut() }
+
+async function doForgotPw(){
+  const email=prompt('Enter your email address to receive a reset link:');
+  if(!email)return;
+  try{ await auth.sendPasswordResetEmail(email); alert('Reset email sent! Check your inbox.') }
+  catch(e){ alert(friendlyErr(e)) }
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  PAGE: PROFILE
+// ══════════════════════════════════════════════════════════════════
+function pageProfile(){
+  const name=currentUser.displayName||'';
+  const email=currentUser.email||'';
+  const initials=name?name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase():'?';
+  return`${navbar('Profile')}
+  <div class="main">
+    <div class="ph"><h1>My Profile</h1></div>
+    <div class="card" style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
+      <div class="profile-avatar">${initials}</div>
+      <div><div style="font-size:1.1rem;font-weight:700;color:var(--gd)">${esc(name)}</div>
+        <div style="color:var(--c6);font-size:.875rem">${esc(email)}</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Account Details</div>
+      <div class="fg"><label class="label">Display Name</label>
+        <input id="p-name" class="inp" type="text" value="${esc(name)}" placeholder="Your name" onkeydown="if(event.key==='Enter')doUpdateProfile()"></div>
+      <button class="btn btn-primary" onclick="doUpdateProfile()">Save Changes</button>
+    </div>
+    <div class="card">
+      <div class="card-title">Password</div>
+      <p class="text-sm text-muted mb1">A reset link will be sent to <strong>${esc(email)}</strong></p>
+      <button class="btn btn-outline" onclick="doResetPw()">Send Password Reset Email</button>
+    </div>
+    <div class="card danger-zone">
+      <div class="card-title danger-title">Sign Out</div>
+      <p class="text-sm text-muted mb1">Sign out of Lined Up on this device.</p>
+      <button class="btn btn-danger" onclick="doLogout()">Sign Out</button>
+    </div>
+  </div>`;
+}
+
+async function doUpdateProfile(){
+  const name=document.getElementById('p-name')?.value.trim();
+  if(!name){alert('Please enter a name.');return}
+  try{ await currentUser.updateProfile({displayName:name}); alert('Profile updated!'); render() }
+  catch(e){ alert('Failed: '+e.message) }
+}
+async function doResetPw(){
+  try{ await auth.sendPasswordResetEmail(currentUser.email); alert('Reset email sent to '+currentUser.email) }
+  catch(e){ alert('Failed: '+e.message) }
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  PAGE: HOME
+// ══════════════════════════════════════════════════════════════════
+function pageHome(){
+  const name=esc(currentUser?.displayName?.split(' ')[0]||'Coach');
+  return`${navbar()}
+  <div class="main">
+    <div class="home-hero">
+      <span class="home-icon">⚾</span>
+      <h1>Lined Up</h1>
+      <p class="home-sub">Baseball Line Up Manager</p>
+      <p class="home-greet">Welcome back, ${name}!</p>
+    </div>
+    <div class="home-cards">
+      <button class="home-card home-card-green" onclick="nav('teams')">
+        <span class="hc-icon">👥</span>
+        <div class="hc-title">Team Management</div>
+        <div class="hc-desc">Manage your rosters, view game history, and track scores</div>
+      </button>
+      <button class="home-card home-card-yellow" onclick="nav('setup')">
+        <span class="hc-icon">📋</span>
+        <div class="hc-title">Set Lineup</div>
+        <div class="hc-desc">Build today's batting order and fielding positions inning by inning</div>
+      </button>
+    </div>
+  </div>`;
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  PAGE: TEAMS
+// ══════════════════════════════════════════════════════════════════
+function pageTeams(){
+  const teams=S.teams();
+  const grid=teams.length===0
+    ?`<div class="empty-state">🏟️<p>No teams yet — create your first team!</p></div>`
+    :`<div class="team-grid">${teams.map(t=>{
+        const last=S.teamLineups(t.id)[0];
+        return`<div class="team-card" onclick="nav('team',{id:'${t.id}'})">
+          <div class="tc-name">${esc(t.name)}</div>
+          <div class="tc-meta">${t.players.length} player${t.players.length!==1?'s':''}</div>
+          <div class="tc-badge">${last?'Last: '+fmtDate(last.date):'No games yet'}</div>
+        </div>`;
+      }).join('')}</div>`;
+  return`${navbar('Teams')}
+  <div class="main">
+    <div class="row flex-spread mb1">
+      <div class="ph" style="margin:0"><h1>Teams</h1></div>
+      <button class="btn btn-primary" onclick="showNewTeam()">+ New Team</button>
+    </div>
+    <div id="new-team-card" class="card" style="display:none">
+      <div class="card-title">New Team</div>
+      <div class="fg"><label class="label">Team Name</label>
+        <input id="nt-name" class="inp" type="text" placeholder="e.g. Tigers" maxlength="50" onkeydown="if(event.key==='Enter')createTeam()"></div>
+      <div class="row gap1">
+        <button class="btn btn-primary" onclick="createTeam()">Create Team</button>
+        <button class="btn btn-ghost" onclick="hideNewTeam()">Cancel</button>
+      </div>
+    </div>
+    ${grid}
+  </div>`;
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  PAGE: TEAM DETAIL
+// ══════════════════════════════════════════════════════════════════
+function pageTeam(){
+  const t=S.team(pgData.id); if(!t){nav('teams');return''}
+  const lineups=S.teamLineups(t.id);
+  const histRows=lineups.length===0
+    ?`<tr><td colspan="5" style="text-align:center;padding:1.5rem;color:var(--c6)">No lineups yet.</td></tr>`
+    :lineups.map(l=>{
+        const hasScore=l.ourScore!==null&&l.ourScore!==undefined&&l.ourScore!=='';
+        const scoreCell=hasScore
+          ?`<span class="score-badge">${l.ourScore} – ${l.theirScore}</span>`
+          :`<button class="btn btn-outline btn-sm" onclick="showScore('${l.id}','${t.id}')">+ Score</button>`;
+        return`<tr>
+          <td>${fmtDate(l.date)}</td>
+          <td>${esc(l.opponent||'—')}</td>
+          <td>${l.innings} inn · ${l.playerCount}P</td>
+          <td>${scoreCell}</td>
+          <td style="white-space:nowrap">
+            <button class="btn btn-ghost btn-sm" title="View/Edit" onclick="viewLineup('${l.id}')">👁</button>
+            <button class="btn btn-ghost btn-sm" title="Print PDF" onclick="printLineupById('${l.id}')">🖨</button>
+            <button class="btn btn-ghost btn-sm" style="color:var(--red)" title="Delete" onclick="delLineup('${l.id}')">🗑</button>
+          </td>
+        </tr>`;
+      }).join('');
+
+  return`${navbar(`Teams / ${esc(t.name)}`)}
+  <div class="main">
+    <button class="btn btn-ghost mb1" onclick="nav('teams')">← Back</button>
+    <div class="card row flex-spread">
+      <div class="ph" style="margin:0"><h1>${esc(t.name)}</h1></div>
+      <div class="row gap1">
+        <button class="btn btn-outline btn-sm" onclick="renameTeam('${t.id}')">✏️ Rename</button>
+        <button class="btn btn-danger btn-sm" onclick="delTeam('${t.id}')">Delete</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Roster (${t.players.length} players)</div>
+      ${t.players.length===0?'<p class="text-sm text-muted">No players yet.</p>'
+        :`<ul class="plist">${t.players.map((p,i)=>`
+          <li class="pitem">
+            <span class="pnum">${i+1}</span>
+            <span style="flex:1;font-weight:500">${esc(p.name)}</span>
+            <button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="removePlayer('${t.id}','${p.id}')">✕</button>
+          </li>`).join('')}</ul>`}
+      <div class="padd-row">
+        <input id="np-name" class="inp" type="text" placeholder="Player name" maxlength="40" onkeydown="if(event.key==='Enter')addPlayer('${t.id}')">
+        <button class="btn btn-primary" onclick="addPlayer('${t.id}')">Add</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="row flex-spread mb1">
+        <span class="card-title" style="margin:0;border:none;padding:0">Lineup History</span>
+        <button class="btn btn-secondary btn-sm" onclick="nav('setup',{teamId:'${t.id}'})">+ New Lineup</button>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="htable">
+          <thead><tr><th>Date</th><th>Opponent</th><th>Format</th><th>Score</th><th></th></tr></thead>
+          <tbody>${histRows}</tbody>
+        </table>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  PAGE: SETUP
+// ══════════════════════════════════════════════════════════════════
+function pageSetup(){
+  const teams=S.teams();
+  if(teams.length===0) return`${navbar('Set Lineup')}
+    <div class="main"><div class="card" style="text-align:center;padding:2rem">
+      <p style="font-size:2rem">🏟️</p>
+      <p style="margin:.75rem 0 1.25rem">Create a team first before setting a lineup.</p>
+      <button class="btn btn-primary" onclick="nav('teams')">Go to Teams</button>
+    </div></div>`;
+
+  const today=new Date().toISOString().split('T')[0];
+  const pre=pgData.teamId||'';
+  return`${navbar('Set Lineup')}
+  <div class="main">
+    <div class="ph"><h1>New Lineup</h1><p>Set up today's game details</p></div>
+    <div class="card">
+      <div class="fg"><label class="label">Team</label>
+        <select id="s-team" class="inp sel" onchange="onTeamChange()">
+          <option value="">— Select team —</option>
+          ${teams.map(t=>`<option value="${t.id}"${t.id===pre?' selected':''}>${esc(t.name)}</option>`).join('')}
+        </select></div>
+      <div class="fg"><label class="label">Date</label>
+        <input id="s-date" class="inp" type="date" value="${today}"></div>
+      <div class="fg"><label class="label">Opponent</label>
+        <input id="s-opp" class="inp" type="text" placeholder="Opponent team name" maxlength="50"></div>
+      <div class="fg"><label class="label">Players on Field</label>
+        <div class="radio-grp">
+          <div class="radio-opt"><input type="radio" name="pc" id="pc9" value="9" checked onchange="onTeamChange()"><label for="pc9">9 Players</label></div>
+          <div class="radio-opt"><input type="radio" name="pc" id="pc10" value="10" onchange="onTeamChange()"><label for="pc10">10 Players</label></div>
+        </div></div>
+      <div class="fg"><label class="label">Innings</label>
+        <div class="stepper">
+          <button class="stbtn" id="inn-dn" onclick="chgInnings(-1)">−</button>
+          <span class="stval" id="inn-val">6</span>
+          <button class="stbtn" id="inn-up" onclick="chgInnings(1)">+</button>
+        </div></div>
+    </div>
+    <div class="card" id="psel-card" style="display:none">
+      <div class="card-title">Select Players <span id="psel-badge" class="badge"></span></div>
+      <p class="text-sm text-muted mb1" id="psel-hint"></p>
+      <div class="pchecks" id="psel-checks"></div>
+    </div>
+    <div class="row" style="justify-content:flex-end;gap:.75rem;margin-top:1rem">
+      <button class="btn btn-ghost" onclick="nav('home')">Cancel</button>
+      <button class="btn btn-secondary btn-lg" onclick="goToBuilder()">Next: Set Positions →</button>
+    </div>
+  </div>`;
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  PAGE: LINEUP BUILDER
+// ══════════════════════════════════════════════════════════════════
+function pageBuild(){
+  if(!LS){nav('setup');return''}
+  const{team,date,opponent,playerCount,innings,selectedPlayers,battingOrder,positionsByInning,isEdit}=LS;
+  const pos=positions(playerCount);
+
+  const orderHtml=battingOrder.map((pid,i)=>{
+    const pl=selectedPlayers.find(p=>p.id===pid);
+    return`<li class="bitem" draggable="true" data-idx="${i}"
+      ondragstart="dndStart(event,${i})" ondragover="dndOver(event)" ondrop="dndDrop(event,${i})" ondragend="dndEnd(event)">
+      <span class="dhandle">=</span>
+      <span class="bnum">${i+1}</span>
+      <span class="bname">${esc(pl?pl.name:'?')}</span>
+      <div class="row gap1" style="align-items:center">
+        <div class="arrowbtns">
+          <button class="arrowbtn" ${i===0?'disabled':''} onclick="moveBatter(${i},-1)">▲</button>
+          <button class="arrowbtn" ${i===battingOrder.length-1?'disabled':''} onclick="moveBatter(${i},1)">▼</button>
+        </div>
+        <button class="drop-btn" onclick="dropPlayer('${pid}')" title="Drop from lineup">✕</button>
+      </div>
+    </li>`;
+  }).join('');
+
+  const hdrs=Array.from({length:innings},(_,i)=>`<th>Inn ${i+1}</th>`).join('');
+  const rows=battingOrder.map((pid,ri)=>{
+    const pl=selectedPlayers.find(p=>p.id===pid);
+    const cells=Array.from({length:innings},(_,ii)=>{
+      const val=(positionsByInning[ii]||{})[pid]||'—';
+      return`<td><select class="pos-sel${val==='—'?' unset':val==='BN'?' bench':''}" data-pid="${pid}" data-inn="${ii}" onchange="posChg(this)">
+        ${pos.map(p=>`<option${p===val?' selected':''}>${p}</option>`).join('')}
+      </select></td>`;
+    }).join('');
+    return`<tr><td>${ri+1}. ${esc(pl?pl.name:'?')}</td>${cells}</tr>`;
+  }).join('');
+
+  return`${navbar(isEdit?`Edit Lineup — ${esc(team.name)}`:`Set Lineup — ${esc(team.name)}`)}
+  <div class="main">
+    <div class="ph">
+      <h1>${esc(team.name)}</h1>
+      <p>${fmtDate(date)} vs <strong>${esc(opponent||'TBD')}</strong> · ${innings} inning${innings!==1?'s':''} · ${playerCount} players</p>
+    </div>
+    <div class="card">
+      <div class="sh2"><h3>Batting Order</h3><span class="sh2-badge">Drag or use arrows to reorder</span></div>
+      <ul class="blist" id="blist">${orderHtml}</ul>
+    </div>
+    <div class="card">
+      <div class="sh2"><h3>Fielding Positions by Inning</h3><span class="sh2-badge">Select a position for each inning</span></div>
+      <div id="dup-warn" class="warn">⚠️ One or more positions are assigned twice in the same inning — check highlighted cells.</div>
+      <div class="pgwrap"><table class="pgrid" id="pgrid">
+        <thead><tr><th>Player</th>${hdrs}</tr></thead>
+        <tbody>${rows}</tbody>
+      </table></div>
+    </div>
+    <div class="flex-spread">
+      <button class="btn btn-outline" onclick="${isEdit?`nav('team',{id:'${team.id}'})`:`nav('setup',{teamId:'${team.id}'})`}">
+        ${isEdit?'← Back to Team':'← Back'}
+      </button>
+      <div class="row gap1">
+        <button class="btn btn-outline btn-lg" onclick="printLineup()">🖨 Print PDF</button>
+        <button class="btn btn-secondary btn-lg" onclick="saveLineup()">💾 ${isEdit?'Save Changes':'Save Lineup'}</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  PAGE INIT
+// ══════════════════════════════════════════════════════════════════
+function initPage(){
+  if(page==='setup') initSetup();
+  if(page==='build') checkDups();
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  TEAM ACTIONS
+// ══════════════════════════════════════════════════════════════════
+function showNewTeam(){ const c=document.getElementById('new-team-card'); c.style.display='block'; document.getElementById('nt-name').focus() }
+function hideNewTeam(){ document.getElementById('new-team-card').style.display='none' }
+async function createTeam(){ const n=document.getElementById('nt-name').value.trim(); if(!n){alert('Enter a team name.');return} await S.addTeam(n); nav('teams') }
+async function renameTeam(id){ const t=S.team(id); const n=prompt('New team name:',t.name); if(!n||!n.trim())return; await S.renameTeam(id,n.trim()); nav('team',{id}) }
+async function delTeam(id){ const t=S.team(id); if(!confirm(`Delete "${t.name}" and all its lineups? This cannot be undone.`))return; await S.deleteTeam(id); nav('teams') }
+async function addPlayer(tid){ const n=document.getElementById('np-name').value.trim(); if(!n)return; await S.addPlayer(tid,n); nav('team',{id:tid}) }
+async function removePlayer(tid,pid){ if(!confirm('Remove this player from the roster?'))return; await S.removePlayer(tid,pid); nav('team',{id:tid}) }
+async function delLineup(id){ if(!confirm('Delete this lineup? This cannot be undone.'))return; await S.deleteLineup(id); nav('team',pgData) }
+
+// ══════════════════════════════════════════════════════════════════
+//  SCORE MODAL
+// ══════════════════════════════════════════════════════════════════
+function showScore(lid,tid){
+  const l=S.lineup(lid); const t=S.team(tid);
+  document.getElementById('modal-root').innerHTML=`
+  <div class="moverlay" onclick="if(event.target===this)closeModal()">
+    <div class="modal">
+      <div class="modal-title">Record Score</div>
+      <p class="text-sm text-muted" style="margin-bottom:1rem">${fmtDate(l.date)} vs ${esc(l.opponent||'Opponent')}</p>
+      <div class="score-row">
+        <div><label class="label">${esc(t.name)}</label>
+          <input id="sc-ours" class="inp" type="number" min="0" max="99" value="${l.ourScore??''}" placeholder="0" style="text-align:center;font-size:1.4rem;font-weight:700;padding:.5rem"></div>
+        <div class="score-vs">–</div>
+        <div><label class="label">${esc(l.opponent||'Opponent')}</label>
+          <input id="sc-theirs" class="inp" type="number" min="0" max="99" value="${l.theirScore??''}" placeholder="0" style="text-align:center;font-size:1.4rem;font-weight:700;padding:.5rem"></div>
+      </div>
+      <div class="row gap1" style="justify-content:flex-end">
+        <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveScore('${lid}')">Save Score</button>
+      </div>
+    </div>
+  </div>`;
+}
+function closeModal(){ document.getElementById('modal-root').innerHTML='' }
+async function saveScore(lid){
+  const o=document.getElementById('sc-ours').value;
+  const th=document.getElementById('sc-theirs').value;
+  await S.setScore(lid,o,th); closeModal(); nav('team',pgData);
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  SETUP LOGIC
+// ══════════════════════════════════════════════════════════════════
+function initSetup(){
+  setupInnings=6;
+  document.getElementById('inn-dn').disabled=false;
+  document.getElementById('inn-up').disabled=false;
+  if(pgData.teamId) onTeamChange();
+}
+function chgInnings(d){
+  setupInnings=Math.max(1,Math.min(9,setupInnings+d));
+  document.getElementById('inn-val').textContent=setupInnings;
+  document.getElementById('inn-dn').disabled=setupInnings<=1;
+  document.getElementById('inn-up').disabled=setupInnings>=9;
+}
+function onTeamChange(){
+  const tid=document.getElementById('s-team').value;
+  const card=document.getElementById('psel-card');
+  if(!tid){card.style.display='none';return}
+  const t=S.team(tid); if(!t){card.style.display='none';return}
+  const pc=parseInt(document.querySelector('input[name="pc"]:checked').value);
+  if(t.players.length<=pc){card.style.display='none';return}
+  card.style.display='block';
+  selPlayers=new Set();
+  document.getElementById('psel-hint').textContent=`Select at least ${pc} players (up to 12). Extra players beyond ${pc} field spots will need bench time.`;
+  document.getElementById('psel-badge').textContent='0 selected';
+  document.getElementById('psel-checks').innerHTML=t.players.map(p=>`
+    <div class="pchk" id="ck-${p.id}" onclick="toggleP('${p.id}',${pc})">
+      <span class="circle" id="ci-${p.id}"></span>
+      <span>${esc(p.name)}</span>
+    </div>`).join('');
+}
+function toggleP(pid,minPc){
+  if(selPlayers.has(pid)){
+    selPlayers.delete(pid);
+    document.getElementById('ck-'+pid).classList.remove('sel');
+    document.getElementById('ci-'+pid).textContent='';
+  } else {
+    if(selPlayers.size>=12){alert('Maximum 12 players per lineup.');return}
+    selPlayers.add(pid);
+    document.getElementById('ck-'+pid).classList.add('sel');
+    document.getElementById('ci-'+pid).textContent='✓';
+  }
+  document.getElementById('psel-badge').textContent=`${selPlayers.size} selected`;
+}
+function goToBuilder(){
+  const tid=document.getElementById('s-team').value;
+  const date=document.getElementById('s-date').value;
+  const opp=document.getElementById('s-opp').value.trim();
+  const pc=parseInt(document.querySelector('input[name="pc"]:checked').value);
+  if(!tid){alert('Please select a team.');return}
+  if(!date){alert('Please enter a game date.');return}
+  const t=S.team(tid); if(!t)return;
+  let players;
+  if(t.players.length<=pc){
+    if(t.players.length<pc){alert(`Your roster only has ${t.players.length} players but ${pc} are needed. Add more players first.`);return}
+    players=[...t.players];
+  } else {
+    if(selPlayers.size<pc){alert(`Please select at least ${pc} players.`);return}
+    players=t.players.filter(p=>selPlayers.has(p.id));
+  }
+  LS={id:uid(),team:t,date,opponent:opp,playerCount:pc,innings:setupInnings,
+    selectedPlayers:players,battingOrder:players.map(p=>p.id),
+    positionsByInning:Array.from({length:setupInnings},()=>({})),
+    isEdit:false,viewOnly:false};
+  selPlayers=new Set();
+  nav('build');
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  BUILDER: DRAG & DROP
+// ══════════════════════════════════════════════════════════════════
+function dndStart(e,idx){ savePosFromDOM(); dragIdx=idx; e.currentTarget.classList.add('dragging'); e.dataTransfer.effectAllowed='move' }
+function dndOver(e){ e.preventDefault(); e.dataTransfer.dropEffect='move'; document.querySelectorAll('.bitem').forEach(el=>el.classList.remove('drag-over')); e.currentTarget.classList.add('drag-over') }
+function dndDrop(e,ti){ e.preventDefault(); if(dragIdx===null||dragIdx===ti)return; const o=[...LS.battingOrder]; const[m]=o.splice(dragIdx,1); o.splice(ti,0,m); LS.battingOrder=o; nav('build') }
+function dndEnd(e){ e.currentTarget.classList.remove('dragging'); document.querySelectorAll('.bitem').forEach(el=>el.classList.remove('drag-over')); dragIdx=null }
+
+// ── REORDER ───────────────────────────────────────────────────────
+function moveBatter(idx,dir){ savePosFromDOM(); const o=[...LS.battingOrder]; const ni=idx+dir; if(ni<0||ni>=o.length)return; [o[idx],o[ni]]=[o[ni],o[idx]]; LS.battingOrder=o; nav('build') }
+
+// ── DROP PLAYER ───────────────────────────────────────────────────
+function dropPlayer(pid){
+  if(LS.battingOrder.length<=LS.playerCount){alert(`Can't drop — need at least ${LS.playerCount} players for this format.`);return}
+  const pl=LS.selectedPlayers.find(p=>p.id===pid);
+  if(!confirm(`Drop ${pl?pl.name:'this player'} from today's lineup?`))return;
+  savePosFromDOM();
+  const remaining=LS.battingOrder.filter(id=>id!==pid);
+  LS.positionsByInning.forEach((innPos)=>{
+    const dp=innPos[pid]||'—';
+    if(dp!=='—'&&dp!=='BN'){
+      const sub=remaining.find(id=>{const p=innPos[id]||'—';return p==='BN'||p==='—'});
+      if(sub)innPos[sub]=dp;
+    }
+    delete innPos[pid];
+  });
+  LS.battingOrder=remaining;
+  LS.selectedPlayers=LS.selectedPlayers.filter(p=>p.id!==pid);
+  nav('build');
+}
+
+// ── POSITIONS ─────────────────────────────────────────────────────
+function posChg(sel){
+  const inn=parseInt(sel.dataset.inn);
+  if(!LS.positionsByInning[inn])LS.positionsByInning[inn]={};
+  LS.positionsByInning[inn][sel.dataset.pid]=sel.value;
+  sel.classList.toggle('unset',sel.value==='—');
+  sel.classList.toggle('bench',sel.value==='BN');
+  checkDups();
+}
+function checkDups(){
+  const sels=document.querySelectorAll('.pos-sel');
+  sels.forEach(s=>s.classList.remove('dup'));
+  const byInn={};
+  sels.forEach(s=>{const k=s.dataset.inn;(byInn[k]||(byInn[k]=[])).push(s)});
+  let hasDup=false;
+  Object.values(byInn).forEach(arr=>{
+    const cnt={};arr.forEach(s=>{if(s.value!=='—'&&s.value!=='BN')cnt[s.value]=(cnt[s.value]||0)+1});
+    arr.forEach(s=>{if(s.value!=='—'&&s.value!=='BN'&&cnt[s.value]>1){s.classList.add('dup');hasDup=true}});
+  });
+  const w=document.getElementById('dup-warn');if(w)w.classList.toggle('show',hasDup);
+}
+function savePosFromDOM(){
+  if(!LS)return;
+  document.querySelectorAll('.pos-sel').forEach(s=>{
+    const inn=parseInt(s.dataset.inn);
+    if(!LS.positionsByInning[inn])LS.positionsByInning[inn]={};
+    LS.positionsByInning[inn][s.dataset.pid]=s.value;
+  });
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  SAVE LINEUP
+// ══════════════════════════════════════════════════════════════════
+async function saveLineup(){
+  if(!LS)return;
+  savePosFromDOM();
+  const existing=S.lineup(LS.id);
+  const lineup={
+    id:LS.id,teamId:LS.team.id,date:LS.date,opponent:LS.opponent,
+    playerCount:LS.playerCount,innings:LS.innings,
+    selectedPlayers:LS.selectedPlayers,battingOrder:LS.battingOrder,
+    positionsByInning:LS.positionsByInning,
+    ourScore:existing?.ourScore??null,
+    theirScore:existing?.theirScore??null
+  };
+  const tid=LS.team.id; LS=null;
+  nav('team',{id:tid});
+  await S.upsertLineup(lineup);
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  VIEW / EDIT SAVED LINEUP
+// ══════════════════════════════════════════════════════════════════
+function viewLineup(lid){
+  const l=S.lineup(lid);if(!l)return;
+  LS={id:l.id,team:S.team(l.teamId),date:l.date,opponent:l.opponent,
+    playerCount:l.playerCount,innings:l.innings,
+    selectedPlayers:l.selectedPlayers,battingOrder:l.battingOrder,
+    positionsByInning:l.positionsByInning,
+    isEdit:true,viewOnly:false};
+  nav('build');
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  PRINT / PDF
+// ══════════════════════════════════════════════════════════════════
+function buildPrintHtml(src){
+  const{team,date,opponent,playerCount,innings,selectedPlayers,battingOrder,positionsByInning}=src;
+  const hdrs=Array.from({length:innings},(_,i)=>`<th>Inn ${i+1}</th>`).join('');
+  const rows=battingOrder.map((pid,ri)=>{
+    const pl=selectedPlayers.find(p=>p.id===pid);
+    const cells=Array.from({length:innings},(_,ii)=>{
+      const v=(positionsByInning[ii]||{})[pid]||'—';
+      return`<td class="${v==='BN'?'bench':v==='—'?'empty':''}">${v}</td>`;
+    }).join('');
+    return`<tr class="${ri%2===0?'even':''}"><td class="num">${ri+1}</td><td class="pname">${esc(pl?pl.name:'?')}</td>${cells}</tr>`;
+  }).join('');
+  return`<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
+<title>Lineup — ${esc(team.name)} vs ${esc(opponent||'TBD')}</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  @page{size:letter landscape;margin:.55in .5in}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:11pt;color:#111}
+  .hdr{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:3px solid #1B5E20;padding-bottom:10px;margin-bottom:14px}
+  .hdr-l h1{font-size:20pt;font-weight:900;color:#1B5E20}
+  .hdr-l p{font-size:10pt;color:#555;margin-top:4px}
+  .hdr-r{text-align:right;font-size:9pt}
+  .pill{display:inline-block;border:1.5px solid #1B5E20;border-radius:20px;padding:2px 10px;font-size:9pt;font-weight:700;color:#1B5E20;margin-left:5px}
+  table{width:100%;border-collapse:collapse;font-size:10pt}
+  th{background:#1B5E20;color:#fff;padding:7px 8px;text-align:center;font-weight:700;border:1px solid #1B5E20}
+  th:nth-child(2){text-align:left}
+  td{padding:6px 8px;border:1px solid #ddd;text-align:center;vertical-align:middle}
+  td.num{font-weight:800;color:#1B5E20;width:30px}
+  td.pname{text-align:left;font-weight:600;min-width:130px}
+  tr.even td{background:#f6faf6}
+  td.bench{color:#999;font-style:italic}
+  td.empty{color:#ccc}
+  .ftr{margin-top:12px;font-size:8pt;color:#bbb;display:flex;justify-content:space-between}
+</style></head><body>
+<div class="hdr">
+  <div class="hdr-l"><h1>⚾ ${esc(team.name)}</h1>
+    <p>${fmtDate(date)} · vs <strong>${esc(opponent||'TBD')}</strong></p></div>
+  <div class="hdr-r">
+    <span class="pill">${innings} Innings</span>
+    <span class="pill">${playerCount} Field Players</span>
+    <span class="pill">${battingOrder.length} Batters</span>
+  </div>
+</div>
+<table><thead><tr><th>#</th><th>Player</th>${hdrs}</tr></thead><tbody>${rows}</tbody></table>
+<div class="ftr"><span>Lined Up — Baseball Line Up Manager</span><span>Printed ${new Date().toLocaleString()}</span></div>
+<script>window.onload=()=>window.print()<\/script>
+</body></html>`;
+}
+
+function printLineup(){
+  if(!LS)return; savePosFromDOM();
+  const w=window.open('','_blank','width=960,height=680');
+  if(!w){alert('Please allow popups to generate the PDF.');return}
+  w.document.write(buildPrintHtml(LS)); w.document.close();
+}
+function printLineupById(lid){
+  const l=S.lineup(lid);if(!l)return;
+  const src={team:S.team(l.teamId),date:l.date,opponent:l.opponent,
+    playerCount:l.playerCount,innings:l.innings,
+    selectedPlayers:l.selectedPlayers,battingOrder:l.battingOrder,
+    positionsByInning:l.positionsByInning};
+  const w=window.open('','_blank','width=960,height=680');
+  if(!w){alert('Please allow popups to generate the PDF.');return}
+  w.document.write(buildPrintHtml(src)); w.document.close();
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  AUTH STATE + BOOT
+// ══════════════════════════════════════════════════════════════════
+auth.onAuthStateChanged(user=>{
+  currentUser=user;
+  authReady=true;
+  if(user){
+    setupListeners();
+    if(page==='login'||page==='register'||page==='loading') page='home';
+  } else {
+    teardownListeners();
+    page='login';
+  }
+  render();
+});
+</script>
+</body>
+</html>
