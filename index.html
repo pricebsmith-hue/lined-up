@@ -315,19 +315,22 @@ function dbErr(e){
 
 async function checkFirestore(){
   if(!currentUser) return;
-  dbStatus=null;
-  render();
+  const timeout=new Promise((_,rej)=>setTimeout(()=>rej({code:'timeout',message:'No response from database after 8 seconds. The Firestore database may not have been created yet in Firebase Console.'}),8000));
   try{
-    await db.doc(`users/${currentUser.uid}/_meta/check`).set({ts:Date.now()});
+    await Promise.race([db.doc(`users/${currentUser.uid}/_meta/check`).set({ts:Date.now()}),timeout]);
     dbStatus='ok';
   } catch(e){
     dbStatus='error';
     if(e?.code==='permission-denied')
-      dbStatusMsg='Firestore rules are blocking saves. Tap this banner for fix instructions.';
+      dbStatusMsg='Permission denied — Firestore rules are blocking saves.';
+    else if(e?.code==='timeout')
+      dbStatusMsg=e.message;
     else if(e?.code==='not-found'||e?.code==='unavailable'||e?.code==='unimplemented')
-      dbStatusMsg='Firestore database not found. Tap this banner for fix instructions.';
+      dbStatusMsg='Firestore database not found in Firebase Console.';
     else
-      dbStatusMsg=(e?.message||e?.code||'Unknown database error.')+' Tap for details.';
+      dbStatusMsg=(e?.message||e?.code||'Unknown database error.');
+    render();
+    showDbError();
   }
   render();
 }
@@ -482,11 +485,9 @@ function buildPage(){
 // ── NAV BAR ───────────────────────────────────────────────────────
 function navbar(bc=''){
   const name=esc(currentUser?.displayName||currentUser?.email?.split('@')[0]||'Coach');
-  let banner='';
-  if(dbStatus===null)
-    banner=`<div class="db-banner db-banner-warn">🔄 Checking database connection…</div>`;
-  else if(dbStatus==='error')
-    banner=`<div class="db-banner db-banner-err" onclick="showDbError()">⚠️ Data is not saving — tap here to fix</div>`;
+  const banner=dbStatus==='error'
+    ?`<div class="db-banner db-banner-err" onclick="showDbError()">⚠️ Data is not saving — tap here to fix</div>`
+    :'';
   return`<nav class="nav">
     <span class="logo" onclick="nav('home')">⚾ Lined Up</span>
     ${bc?`<span class="breadcrumb">/ ${bc}</span>`:''}
