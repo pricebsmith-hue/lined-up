@@ -30,6 +30,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .nav-user:hover{background:rgba(255,255,255,.15)!important;opacity:1}
 .nav-out{color:var(--yb)!important;font-size:.78rem;padding:.35rem .6rem;border:1px solid rgba(255,201,40,.4);border-radius:6px}
 .nav-out:hover{background:rgba(249,168,37,.15)!important}
+.db-banner{padding:.55rem 1rem;text-align:center;font-size:.85rem;font-weight:600;cursor:pointer;letter-spacing:.01em}
+.db-banner-err{background:#c62828;color:#fff}
+.db-banner-warn{background:#e65100;color:#fff}
+.db-banner-ok{background:#2e7d32;color:#fff;cursor:default}
 
 /* LAYOUT */
 .main{max-width:880px;margin:0 auto;padding:1.25rem 1rem}
@@ -280,6 +284,8 @@ const db   = firebase.firestore();
 // ── STATE ─────────────────────────────────────────────────────────
 let currentUser = null;
 let authReady   = false;
+let dbStatus    = null;   // null=checking, 'ok'=connected, 'error'=failed
+let dbStatusMsg = '';
 let page        = 'loading';
 let pgData      = {};
 let LS          = null;   // lineup builder working state
@@ -298,10 +304,59 @@ function fmtDate(d){ if(!d)return'—'; return new Date(d+'T12:00:00').toLocaleD
 function positions(pc){ return pc===10?['—','C','P','1B','2B','SS','3B','LF','LCF','RCF','RF','BN']:['—','C','P','1B','2B','SS','3B','LF','CF','RF','BN'] }
 function dbErr(e){
   console.error('Firestore error:', e);
+  dbStatus='error';
   if(e?.code==='permission-denied')
-    alert('Save failed: Permission denied.\n\nFix: Go to Firebase Console → Firestore Database → Rules and publish the following:\n\nrules_version = \'2\';\nservice cloud.firestore {\n  match /databases/{database}/documents {\n    match /users/{userId}/{document=**} {\n      allow read, write: if request.auth != null && request.auth.uid == userId;\n    }\n    match /usernames/{username} {\n      allow read: if request.auth != null;\n      allow create: if request.auth != null;\n    }\n  }\n}');
+    dbStatusMsg='Permission denied — Firestore rules are blocking saves.';
   else
-    alert('Save failed: '+(e?.message||'Check your internet connection and try again.'));
+    dbStatusMsg=(e?.message||e?.code||'Database connection error.');
+  render();
+  showDbError();
+}
+
+async function checkFirestore(){
+  if(!currentUser) return;
+  dbStatus=null;
+  render();
+  try{
+    await db.doc(`users/${currentUser.uid}/_meta/check`).set({ts:Date.now()});
+    dbStatus='ok';
+  } catch(e){
+    dbStatus='error';
+    if(e?.code==='permission-denied')
+      dbStatusMsg='Firestore rules are blocking saves. Tap this banner for fix instructions.';
+    else if(e?.code==='not-found'||e?.code==='unavailable'||e?.code==='unimplemented')
+      dbStatusMsg='Firestore database not found. Tap this banner for fix instructions.';
+    else
+      dbStatusMsg=(e?.message||e?.code||'Unknown database error.')+' Tap for details.';
+  }
+  render();
+}
+
+function showDbError(){
+  if(document.getElementById('db-modal')) return;
+  const rules=`rules_version = '2';\nservice cloud.firestore {\n  match /databases/{database}/documents {\n    match /users/{userId}/{document=**} {\n      allow read, write: if request.auth != null\n                         && request.auth.uid == userId;\n    }\n    match /usernames/{username} {\n      allow read:   if request.auth != null;\n      allow create: if request.auth != null;\n    }\n  }\n}`;
+  const wrap=document.createElement('div');
+  wrap.id='db-modal';
+  wrap.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:9999;display:flex;align-items:center;justify-content:center;padding:1rem';
+  wrap.innerHTML=`<div style="background:#fff;border-radius:14px;padding:1.5rem;max-width:500px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.3)">
+    <h2 style="color:#c62828;margin:0 0 .75rem">⚠️ Data Not Saving</h2>
+    <p style="margin:0 0 .75rem;color:#333">Your teams and lineups are not being saved. This is almost always a Firestore security rules issue.</p>
+    <p style="margin:0 0 .4rem"><strong>Error:</strong> <code style="font-size:.8rem;background:#fafafa;padding:.1rem .3rem;border-radius:4px">${esc(dbStatusMsg)}</code></p>
+    <hr style="margin:.75rem 0;border:none;border-top:1px solid #eee">
+    <p style="margin:0 0 .5rem"><strong>How to fix in 2 minutes:</strong></p>
+    <ol style="margin:0 0 .75rem;padding-left:1.3rem;line-height:2">
+      <li>Go to <a href="https://console.firebase.google.com/project/lined-up-7e14e/firestore/rules" target="_blank" style="color:#1565c0;font-weight:600">Firebase Console → Firestore Rules</a></li>
+      <li>Replace everything in the editor with the rules below</li>
+      <li>Click <strong>Publish</strong></li>
+    </ol>
+    <pre style="background:#f3f3f3;border-radius:8px;padding:.75rem;font-size:.75rem;overflow-x:auto;margin:0 0 .75rem;white-space:pre;line-height:1.5">${esc(rules)}</pre>
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+      <button onclick="checkFirestore();document.getElementById('db-modal')?.remove()" style="flex:1;padding:.6rem 1rem;background:#1565c0;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600;font-size:.9rem">Retry Connection</button>
+      <button onclick="document.getElementById('db-modal')?.remove()" style="padding:.6rem 1rem;background:#e0e0e0;border:none;border-radius:8px;cursor:pointer;font-size:.9rem">Dismiss</button>
+    </div>
+  </div>`;
+  wrap.addEventListener('click', e=>{ if(e.target===wrap) wrap.remove(); });
+  document.body.appendChild(wrap);
 }
 
 // ── FIRESTORE LISTENERS ───────────────────────────────────────────
@@ -315,8 +370,9 @@ function setupListeners(){
   const u3 = db.collection(`users/${u}/games`).orderBy('date','desc')
     .onSnapshot(snap=>{ cache.games=snap.docs.map(d=>d.data()); if(authReady)render() }, onErr);
   unsubs=[u1,u2,u3].filter(Boolean);
+  checkFirestore();
 }
-function teardownListeners(){ unsubs.forEach(u=>u()); unsubs=[]; cache={teams:[],lineups:[],games:[]} }
+function teardownListeners(){ unsubs.forEach(u=>u()); unsubs=[]; cache={teams:[],lineups:[],games:[]}; dbStatus=null; dbStatusMsg=''; }
 
 // ── STORE ─────────────────────────────────────────────────────────
 const S = {
@@ -426,6 +482,11 @@ function buildPage(){
 // ── NAV BAR ───────────────────────────────────────────────────────
 function navbar(bc=''){
   const name=esc(currentUser?.displayName||currentUser?.email?.split('@')[0]||'Coach');
+  let banner='';
+  if(dbStatus===null)
+    banner=`<div class="db-banner db-banner-warn">🔄 Checking database connection…</div>`;
+  else if(dbStatus==='error')
+    banner=`<div class="db-banner db-banner-err" onclick="showDbError()">⚠️ Data is not saving — tap here to fix</div>`;
   return`<nav class="nav">
     <span class="logo" onclick="nav('home')">⚾ Lined Up</span>
     ${bc?`<span class="breadcrumb">/ ${bc}</span>`:''}
@@ -433,7 +494,7 @@ function navbar(bc=''){
       <button class="btn btn-ghost nav-user" onclick="nav('profile')">👤 ${name}</button>
       <button class="btn nav-out" onclick="doLogout()">Sign out</button>
     </div>
-  </nav>`;
+  </nav>${banner}`;
 }
 
 // ══════════════════════════════════════════════════════════════════
