@@ -296,17 +296,25 @@ function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(
 function esc(s){ return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') }
 function fmtDate(d){ if(!d)return'—'; return new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) }
 function positions(pc){ return pc===10?['—','C','P','1B','2B','SS','3B','LF','LCF','RCF','RF','BN']:['—','C','P','1B','2B','SS','3B','LF','CF','RF','BN'] }
+function dbErr(e){
+  console.error('Firestore error:', e);
+  if(e?.code==='permission-denied')
+    alert('Save failed: Permission denied.\n\nFix: Go to Firebase Console → Firestore Database → Rules and publish the following:\n\nrules_version = \'2\';\nservice cloud.firestore {\n  match /databases/{database}/documents {\n    match /users/{userId}/{document=**} {\n      allow read, write: if request.auth != null && request.auth.uid == userId;\n    }\n    match /usernames/{username} {\n      allow read: if request.auth != null;\n      allow create: if request.auth != null;\n    }\n  }\n}');
+  else
+    alert('Save failed: '+(e?.message||'Check your internet connection and try again.'));
+}
 
 // ── FIRESTORE LISTENERS ───────────────────────────────────────────
 function setupListeners(){
   const u = currentUser.uid;
+  const onErr = e => console.error('Listener error:', e);
   const u1 = db.collection(`users/${u}/teams`).orderBy('name')
-    .onSnapshot(snap=>{ cache.teams=snap.docs.map(d=>d.data()); if(authReady)render() });
+    .onSnapshot(snap=>{ cache.teams=snap.docs.map(d=>d.data()); if(authReady)render() }, onErr);
   const u2 = db.collection(`users/${u}/lineups`).orderBy('date','desc')
-    .onSnapshot(snap=>{ cache.lineups=snap.docs.map(d=>d.data()); if(authReady)render() });
+    .onSnapshot(snap=>{ cache.lineups=snap.docs.map(d=>d.data()); if(authReady)render() }, onErr);
   const u3 = db.collection(`users/${u}/games`).orderBy('date','desc')
-    .onSnapshot(snap=>{ cache.games=snap.docs.map(d=>d.data()); if(authReady)render() });
-  unsubs=[u1,u2,u3];
+    .onSnapshot(snap=>{ cache.games=snap.docs.map(d=>d.data()); if(authReady)render() }, onErr);
+  unsubs=[u1,u2,u3].filter(Boolean);
 }
 function teardownListeners(){ unsubs.forEach(u=>u()); unsubs=[]; cache={teams:[],lineups:[],games:[]} }
 
@@ -320,57 +328,77 @@ const S = {
 
   async addTeam(name){
     const id=uid(); const t={id,name,players:[],createdAt:new Date().toISOString()};
+    const prev=[...cache.teams];
     cache.teams=[...cache.teams,t].sort((a,b)=>a.name.localeCompare(b.name));
-    await db.doc(`users/${currentUser.uid}/teams/${id}`).set(t);
+    try{ await db.doc(`users/${currentUser.uid}/teams/${id}`).set(t); }
+    catch(e){ cache.teams=prev; render(); dbErr(e); }
   },
   async renameTeam(id,name){
+    const prev=[...cache.teams];
     cache.teams=cache.teams.map(t=>t.id===id?{...t,name}:t);
-    await db.doc(`users/${currentUser.uid}/teams/${id}`).update({name});
+    try{ await db.doc(`users/${currentUser.uid}/teams/${id}`).update({name}); }
+    catch(e){ cache.teams=prev; render(); dbErr(e); }
   },
   async deleteTeam(id){
     const uid_=currentUser.uid; const batch=db.batch();
+    const prevT=[...cache.teams]; const prevL=[...cache.lineups];
     cache.teams=cache.teams.filter(t=>t.id!==id);
     cache.lineups.filter(l=>l.teamId===id).forEach(l=>{ batch.delete(db.doc(`users/${uid_}/lineups/${l.id}`)) });
     cache.lineups=cache.lineups.filter(l=>l.teamId!==id);
     batch.delete(db.doc(`users/${uid_}/teams/${id}`));
-    await batch.commit();
+    try{ await batch.commit(); }
+    catch(e){ cache.teams=prevT; cache.lineups=prevL; render(); dbErr(e); }
   },
   async addPlayer(teamId,name){
     const t=S.team(teamId); if(!t)return;
     const players=[...t.players,{id:uid(),name}];
+    const prev=[...cache.teams];
     cache.teams=cache.teams.map(x=>x.id===teamId?{...x,players}:x);
-    await db.doc(`users/${currentUser.uid}/teams/${teamId}`).update({players});
+    try{ await db.doc(`users/${currentUser.uid}/teams/${teamId}`).update({players}); }
+    catch(e){ cache.teams=prev; render(); dbErr(e); }
   },
   async removePlayer(teamId,playerId){
     const t=S.team(teamId); if(!t)return;
     const players=t.players.filter(p=>p.id!==playerId);
+    const prev=[...cache.teams];
     cache.teams=cache.teams.map(x=>x.id===teamId?{...x,players}:x);
-    await db.doc(`users/${currentUser.uid}/teams/${teamId}`).update({players});
+    try{ await db.doc(`users/${currentUser.uid}/teams/${teamId}`).update({players}); }
+    catch(e){ cache.teams=prev; render(); dbErr(e); }
   },
   async upsertLineup(l){
+    const prev=[...cache.lineups];
     const idx=cache.lineups.findIndex(x=>x.id===l.id);
     if(idx>=0)cache.lineups[idx]=l; else cache.lineups.unshift(l);
-    await db.doc(`users/${currentUser.uid}/lineups/${l.id}`).set(l);
+    try{ await db.doc(`users/${currentUser.uid}/lineups/${l.id}`).set(l); }
+    catch(e){ cache.lineups=prev; render(); dbErr(e); }
   },
   async deleteLineup(id){
+    const prev=[...cache.lineups];
     cache.lineups=cache.lineups.filter(l=>l.id!==id);
-    await db.doc(`users/${currentUser.uid}/lineups/${id}`).delete();
+    try{ await db.doc(`users/${currentUser.uid}/lineups/${id}`).delete(); }
+    catch(e){ cache.lineups=prev; render(); dbErr(e); }
   },
   async setScore(id,ourScore,theirScore){
+    const prev=[...cache.lineups];
     cache.lineups=cache.lineups.map(l=>l.id===id?{...l,ourScore,theirScore}:l);
-    await db.doc(`users/${currentUser.uid}/lineups/${id}`).update({ourScore,theirScore});
+    try{ await db.doc(`users/${currentUser.uid}/lineups/${id}`).update({ourScore,theirScore}); }
+    catch(e){ cache.lineups=prev; render(); dbErr(e); }
   },
 
   games()    { return cache.games },
   game(id)   { return cache.games.find(g=>g.id===id)||null },
   async saveGame(g){
+    const prev=[...cache.games];
     const idx=cache.games.findIndex(x=>x.id===g.id);
     if(idx>=0)cache.games[idx]=g; else cache.games.unshift(g);
-    await db.doc(`users/${currentUser.uid}/games/${g.id}`).set(g);
+    try{ await db.doc(`users/${currentUser.uid}/games/${g.id}`).set(g); }
+    catch(e){ cache.games=prev; render(); dbErr(e); }
   },
   async deleteGame(id){
+    const prev=[...cache.games];
     cache.games=cache.games.filter(g=>g.id!==id);
-    await db.doc(`users/${currentUser.uid}/games/${id}`).delete();
+    try{ await db.doc(`users/${currentUser.uid}/games/${id}`).delete(); }
+    catch(e){ cache.games=prev; render(); dbErr(e); }
   }
 };
 
