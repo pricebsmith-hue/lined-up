@@ -1175,63 +1175,29 @@ function pageScore(){
 //  PAGE: SCORE SETUP
 // ══════════════════════════════════════════════════════════════════
 function pageScoreSetup(){
-  const mode=pgData.mode||'new';
-  const today=new Date().toISOString().split('T')[0];
+  // mode='new' is now handled by pageSetup({forScoring:true}) — redirect if reached directly
+  if((pgData.mode||'existing')==='new'){ nav('setup',{forScoring:true}); return'' }
 
-  if(mode==='existing'){
-    const lineups=cache.lineups;
-    const rows=lineups.length===0
-      ?`<div class="empty-state">📋<p>No saved lineups yet — build one first!</p></div>`
-      :lineups.map(l=>{
-          const t=S.team(l.teamId);
-          return`<div class="team-card" style="cursor:pointer;margin-bottom:.5rem" onclick="startGameFromLineup('${l.id}')">
-            <div class="flex-spread">
-              <div>
-                <div class="tc-name">${esc(t?t.name:'?')} vs ${esc(l.opponent||'TBD')}</div>
-                <div class="tc-meta">${fmtDate(l.date)} &bull; ${(l.battingOrder||[]).length} batters</div>
-              </div>
-              <span class="btn btn-primary btn-sm">Use &rarr;</span>
+  const lineups=cache.lineups;
+  const rows=lineups.length===0
+    ?`<div class="empty-state">📋<p>No saved lineups yet — build one first!</p></div>`
+    :lineups.map(l=>{
+        const t=S.team(l.teamId);
+        return`<div class="team-card" style="cursor:pointer;margin-bottom:.5rem" onclick="startGameFromLineup('${l.id}')">
+          <div class="flex-spread">
+            <div>
+              <div class="tc-name">${esc(t?t.name:'?')} vs ${esc(l.opponent||'TBD')}</div>
+              <div class="tc-meta">${fmtDate(l.date)} &bull; ${(l.battingOrder||[]).length} batters</div>
             </div>
-          </div>`;
-        }).join('');
-    return`${navbar('Score a Game')}
-    <div class="main">
-      <button class="btn btn-ghost mb1" onclick="nav('score')">&#8592; Back</button>
-      <div class="ph"><h1>Select Lineup</h1></div>
-      ${rows}
-    </div>`;
-  }
-
-  const teams=S.teams();
+            <span class="btn btn-primary btn-sm">Use &rarr;</span>
+          </div>
+        </div>`;
+      }).join('');
   return`${navbar('Score a Game')}
   <div class="main">
     <button class="btn btn-ghost mb1" onclick="nav('score')">&#8592; Back</button>
-    <div class="ph"><h1>New Game Setup</h1></div>
-    <div class="card">
-      <div class="fg"><label class="label">Team</label>
-        <select id="sg-team" class="inp sel" onchange="onScoreTeamChange()">
-          <option value="">&#8212; Select team &#8212;</option>
-          ${teams.map(t=>`<option value="${t.id}">${esc(t.name)}</option>`).join('')}
-        </select></div>
-      <div class="fg"><label class="label">Opponent</label>
-        <input id="sg-opp" class="inp" type="text" placeholder="Opponent team name" maxlength="50"></div>
-      <div class="fg"><label class="label">Date</label>
-        <input id="sg-date" class="inp" type="date" value="${today}"></div>
-      <div class="fg"><label class="label">Who bats first?</label>
-        <div class="radio-grp">
-          <div class="radio-opt"><input type="radio" name="sg-bf" id="sg-bf-us" value="us" checked><label for="sg-bf-us">We bat first</label></div>
-          <div class="radio-opt"><input type="radio" name="sg-bf" id="sg-bf-them" value="them"><label for="sg-bf-them">They bat first</label></div>
-        </div></div>
-    </div>
-    <div class="card" id="sg-psel" style="display:none">
-      <div class="card-title">Select Batting Order <span id="sg-badge" class="badge">0 selected</span></div>
-      <p class="text-sm text-muted mb1">Tap players in batting order. Tap again to remove.</p>
-      <div class="pchecks" id="sg-checks"></div>
-    </div>
-    <div class="row" style="justify-content:flex-end;gap:.75rem;margin-top:1rem">
-      <button class="btn btn-ghost" onclick="nav('score')">Cancel</button>
-      <button class="btn btn-secondary btn-lg" onclick="startNewGame()">&#9918; Start Game &rarr;</button>
-    </div>
+    <div class="ph"><h1>Select Lineup</h1><p>Choose a saved lineup to use for this game</p></div>
+    ${rows}
   </div>`;
 }
 
