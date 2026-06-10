@@ -706,7 +706,9 @@ function pageTeam(){
 // ══════════════════════════════════════════════════════════════════
 function pageSetup(){
   const teams=S.teams();
-  if(teams.length===0) return`${navbar('Set Lineup')}
+  const forScoring=pgData.forScoring||false;
+  const bc=forScoring?'Score a Game':'Set Lineup';
+  if(teams.length===0) return`${navbar(bc)}
     <div class="main"><div class="card" style="text-align:center;padding:2rem">
       <p style="font-size:2rem">🏟️</p>
       <p style="margin:.75rem 0 1.25rem">Create a team first before setting a lineup.</p>
@@ -715,9 +717,12 @@ function pageSetup(){
 
   const today=new Date().toISOString().split('T')[0];
   const pre=pgData.teamId||'';
-  return`${navbar('Set Lineup')}
+  return`${navbar(bc)}
   <div class="main">
-    <div class="ph"><h1>New Lineup</h1><p>Set up today's game details</p></div>
+    <div class="ph">
+      <h1>${forScoring?'Game Setup':'New Lineup'}</h1>
+      <p>${forScoring?'Build your lineup then start scoring':'Set up today\'s game details'}</p>
+    </div>
     <div class="card">
       <div class="fg"><label class="label">Team</label>
         <select id="s-team" class="inp sel" onchange="onTeamChange()">
@@ -739,6 +744,11 @@ function pageSetup(){
           <span class="stval" id="inn-val">6</span>
           <button class="stbtn" id="inn-up" onclick="chgInnings(1)">+</button>
         </div></div>
+      ${forScoring?`<div class="fg"><label class="label">Who bats first?</label>
+        <div class="radio-grp">
+          <div class="radio-opt"><input type="radio" name="bf" id="bf-us" value="us" checked><label for="bf-us">We bat first</label></div>
+          <div class="radio-opt"><input type="radio" name="bf" id="bf-them" value="them"><label for="bf-them">They bat first</label></div>
+        </div></div>`:''}
     </div>
     <div class="card" id="psel-card" style="display:none">
       <div class="card-title">Select Players <span id="psel-badge" class="badge"></span></div>
@@ -746,7 +756,7 @@ function pageSetup(){
       <div class="pchecks" id="psel-checks"></div>
     </div>
     <div class="row" style="justify-content:flex-end;gap:.75rem;margin-top:1rem">
-      <button class="btn btn-ghost" onclick="nav('home')">Cancel</button>
+      <button class="btn btn-ghost" onclick="nav('${forScoring?'score':'home'}')">Cancel</button>
       <button class="btn btn-secondary btn-lg" onclick="goToBuilder()">Next: Set Positions →</button>
     </div>
   </div>`;
@@ -789,11 +799,19 @@ function pageBuild(){
     return`<tr><td>${ri+1}. ${esc(pl?pl.name:'?')}</td>${cells}</tr>`;
   }).join('');
 
-  return`${navbar(isEdit?`Edit Lineup — ${esc(team.name)}`:`Set Lineup — ${esc(team.name)}`)}
+  const{forScoring,weGoFirst}=LS;
+  const navTitle=forScoring?`Score a Game — ${esc(team.name)}`:isEdit?`Edit Lineup — ${esc(team.name)}`:`Set Lineup — ${esc(team.name)}`;
+  const backFn=isEdit?`nav('team',{id:'${team.id}'})`
+    :forScoring?`nav('setup',{forScoring:true,teamId:'${team.id}'})`
+    :`nav('setup',{teamId:'${team.id}'})`;
+  const backLabel=isEdit?'← Back to Team':'← Back';
+  const saveLabel=forScoring?'🏟️ Save & Start Game':isEdit?'💾 Save Changes':'💾 Save Lineup';
+
+  return`${navbar(navTitle)}
   <div class="main">
     <div class="ph">
       <h1>${esc(team.name)}</h1>
-      <p>${fmtDate(date)} vs <strong>${esc(opponent||'TBD')}</strong> · ${innings} inning${innings!==1?'s':''} · ${playerCount} players</p>
+      <p>${fmtDate(date)} vs <strong>${esc(opponent||'TBD')}</strong> · ${innings} inning${innings!==1?'s':''} · ${playerCount} players${forScoring?` · ${weGoFirst?'We bat first':'They bat first'}`:''}</p>
     </div>
     <div class="card">
       <div class="sh2"><h3>Batting Order</h3><span class="sh2-badge">Drag or use arrows to reorder</span></div>
@@ -808,12 +826,10 @@ function pageBuild(){
       </table></div>
     </div>
     <div class="flex-spread">
-      <button class="btn btn-outline" onclick="${isEdit?`nav('team',{id:'${team.id}'})`:`nav('setup',{teamId:'${team.id}'})`}">
-        ${isEdit?'← Back to Team':'← Back'}
-      </button>
+      <button class="btn btn-outline" onclick="${backFn}">${backLabel}</button>
       <div class="row gap1">
         <button class="btn btn-outline btn-lg" onclick="printLineup()">🖨 Print PDF</button>
-        <button class="btn btn-secondary btn-lg" onclick="saveLineup()">💾 ${isEdit?'Save Changes':'Save Lineup'}</button>
+        <button class="btn ${forScoring?'btn-primary':'btn-secondary'} btn-lg" onclick="saveLineup()">${saveLabel}</button>
       </div>
     </div>
   </div>`;
@@ -931,10 +947,13 @@ function goToBuilder(){
     if(selPlayers.size<pc){alert(`Please select at least ${pc} players.`);return}
     players=t.players.filter(p=>selPlayers.has(p.id));
   }
+  const forScoring=pgData.forScoring||false;
+  const bfEl=document.querySelector('input[name="bf"]:checked');
+  const weGoFirst=bfEl?bfEl.value==='us':true;
   LS={id:uid(),team:t,date,opponent:opp,playerCount:pc,innings:setupInnings,
     selectedPlayers:players,battingOrder:players.map(p=>p.id),
     positionsByInning:Array.from({length:setupInnings},()=>({})),
-    isEdit:false,viewOnly:false};
+    isEdit:false,viewOnly:false,forScoring,weGoFirst};
   selPlayers=new Set();
   nav('build');
 }
@@ -1015,9 +1034,21 @@ async function saveLineup(){
     ourScore:existing?.ourScore??null,
     theirScore:existing?.theirScore??null
   };
-  const tid=LS.team.id; LS=null;
-  nav('team',{id:tid});
+  const tid=LS.team.id;
+  const forScoring=LS.forScoring||false;
+  const weGoFirst=LS.weGoFirst!==undefined?LS.weGoFirst:true;
+  LS=null;
   await S.upsertLineup(lineup);
+  if(forScoring){
+    const t=S.team(tid);
+    const players=(lineup.battingOrder||[])
+      .map(pid=>(lineup.selectedPlayers||[]).find(p=>p.id===pid))
+      .filter(Boolean);
+    AG=initAG(tid,t?t.name:'Team',lineup.opponent||'Opponent',lineup.date,players,weGoFirst);
+    nav('game');
+  } else {
+    nav('team',{id:tid});
+  }
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -1112,10 +1143,10 @@ function pageScore(){
   <div class="main">
     <div class="ph"><h1>Score a Game</h1><p>Track live at-bats, pitching and save results</p></div>
     <div class="home-cards" style="margin-top:0">
-      <button class="home-card home-card-green" onclick="${hasTeams?`nav('score-setup',{mode:'new'})`:'alert(\"Create a team first.\")'}" style="${!hasTeams?'opacity:.5;cursor:not-allowed':''}">
+      <button class="home-card home-card-green" onclick="${hasTeams?`nav('setup',{forScoring:true})`:'alert(\"Create a team first.\")'}" style="${!hasTeams?'opacity:.5;cursor:not-allowed':''}">
         <span class="hc-icon">📋</span>
         <div class="hc-title">New Lineup</div>
-        <div class="hc-desc">Pick players from your roster for today's game</div>
+        <div class="hc-desc">Build batting order and fielding positions, then start scoring</div>
       </button>
       <button class="home-card home-card-yellow" onclick="${hasLineups?`nav('score-setup',{mode:'existing'})`:'alert(\"No saved lineups yet.\")'}" style="${!hasLineups?'opacity:.5;cursor:not-allowed':''}">
         <span class="hc-icon">📂</span>
