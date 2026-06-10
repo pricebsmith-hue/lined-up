@@ -92,7 +92,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .home-sub{font-size:1rem;color:var(--c6);margin-top:.25rem}
 .home-greet{font-size:.95rem;color:var(--gm);margin-top:.5rem;font-weight:600}
 .home-icon{font-size:3.5rem;display:block;margin-bottom:.5rem}
-.home-cards{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:2rem}
+.home-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-top:2rem}
 @media(max-width:480px){.home-cards{grid-template-columns:1fr}}
 .home-card{border-radius:16px;padding:2rem 1.5rem;cursor:pointer;transition:transform .15s,box-shadow .15s;text-align:center;border:none;font-family:inherit}
 .home-card:hover{transform:translateY(-3px);box-shadow:0 6px 20px rgba(0,0,0,.15)}
@@ -200,6 +200,56 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .badge{display:inline-block;background:var(--yl);color:var(--yd);border-radius:12px;padding:.15rem .6rem;font-size:.75rem;font-weight:700}
 .empty-state{text-align:center;padding:2rem;color:var(--c6)}
 .empty-state p{margin-top:.5rem}
+.home-card-blue{background:#1565C0;color:#fff}
+
+/* ── GAME SCORING ─────────────────────────────────────────────── */
+.game-hdr{background:var(--gd);color:#fff;padding:.85rem 1rem;text-align:center;position:sticky;top:56px;z-index:90;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+.game-scoreline{display:flex;align-items:center;justify-content:center;gap:.75rem}
+.game-team{font-size:.72rem;font-weight:700;opacity:.7;text-transform:uppercase;letter-spacing:.05em}
+.game-pts{font-size:2rem;font-weight:900;color:var(--yb);min-width:42px;text-align:center}
+.game-sep{font-size:1.4rem;font-weight:300;opacity:.5}
+.game-info{font-size:.8rem;opacity:.8;margin-top:.3rem}
+.game-outs{display:inline-flex;gap:.3rem;vertical-align:middle}
+.out-pip{width:11px;height:11px;border-radius:50%;border:2px solid rgba(255,255,255,.45);display:inline-block}
+.out-pip.on{background:var(--yb);border-color:var(--yb)}
+.cur-batter{background:var(--gp);border-radius:10px;padding:.75rem 1rem;margin-bottom:.75rem;display:flex;align-items:center;gap:.75rem}
+.cb-num{width:34px;height:34px;background:var(--g);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;flex-shrink:0}
+.cb-name{font-weight:700;color:var(--gd);font-size:1rem}
+.cb-stat{font-size:.75rem;color:var(--c6);margin-top:.1rem}
+.bat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.4rem;margin-bottom:.45rem}
+.bat-grid2{display:grid;grid-template-columns:repeat(3,1fr);gap:.4rem;margin-bottom:1rem}
+.bat-btn{padding:.8rem .3rem;border-radius:10px;border:none;font-size:.9rem;font-weight:800;cursor:pointer;font-family:inherit;transition:transform .1s,opacity .15s;display:flex;flex-direction:column;align-items:center;gap:.15rem;line-height:1.1}
+.bat-btn:active{transform:scale(.93)}
+.bat-lbl{font-size:.58rem;font-weight:600;opacity:.8}
+.bbS{background:#4CAF50;color:#fff}.bbD{background:#2E7D32;color:#fff}.bbT{background:#1B5E20;color:#fff}
+.bbHR{background:var(--y);color:var(--gd)}.bbK{background:#C62828;color:#fff}.bbO{background:#757575;color:#fff}.bbBB{background:#1565C0;color:#fff}
+.pitch-bar{display:flex;align-items:center;gap:.55rem;background:var(--c1);border-radius:10px;padding:.6rem .9rem;margin-bottom:.75rem;flex-wrap:wrap}
+.pitch-lbl{font-size:.7rem;font-weight:700;color:var(--c6);text-transform:uppercase;letter-spacing:.04em}
+.pitch-pips{display:flex;gap:.25rem}
+.p-pip{width:12px;height:12px;border-radius:50%;border:2px solid var(--c4)}
+.p-pip.ball{background:#1565C0;border-color:#1565C0}
+.p-pip.strike{background:#C62828;border-color:#C62828}
+.pitch-grid{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.5rem}
+.pitch-btn{padding:.85rem;border-radius:10px;border:none;font-size:.92rem;font-weight:700;cursor:pointer;font-family:inherit;transition:transform .1s}
+.pitch-btn:active{transform:scale(.93)}
+.pbStr{background:#C62828;color:#fff}.pbBall{background:#1565C0;color:#fff}.pbHit{background:var(--y);color:var(--gd)}.pbOut{background:#757575;color:#fff}
+.run-bar{display:flex;align-items:center;justify-content:space-between;background:var(--yl);border-radius:10px;padding:.6rem .9rem;margin-bottom:.75rem}
+.run-bar-lbl{font-size:.82rem;font-weight:600;color:var(--yd)}
+.run-add-btn{background:var(--y);border:none;border-radius:8px;width:34px;height:34px;font-size:1.1rem;font-weight:800;cursor:pointer;color:var(--gd)}
+.game-actions{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.75rem}
+.game-actions .btn{flex:1;min-width:80px;justify-content:center}
+.stat-wrap{overflow-x:auto}
+.stat-tbl{width:100%;border-collapse:collapse;font-size:.78rem;min-width:360px}
+.stat-tbl th{background:var(--gp);color:var(--gd);padding:.4rem .45rem;text-align:center;font-size:.68rem;font-weight:700;text-transform:uppercase;white-space:nowrap}
+.stat-tbl th:first-child{text-align:left;min-width:90px}
+.stat-tbl td{padding:.38rem .45rem;border-bottom:1px solid var(--c1);text-align:center;white-space:nowrap}
+.stat-tbl td:first-child{text-align:left;font-weight:600}
+.stat-tbl tr:last-child td{border-bottom:none}
+.rbi-wrap{text-align:center}
+.rbi-title{font-size:1.05rem;font-weight:700;color:var(--gd);margin-bottom:.75rem}
+.rbi-row{display:flex;justify-content:center;gap:.6rem;flex-wrap:wrap;margin-bottom:.75rem}
+.rbi-btn{width:52px;height:52px;border-radius:50%;border:3px solid var(--c2);background:var(--w);font-size:1.3rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--c6);transition:all .15s;font-family:inherit}
+.rbi-btn:hover{border-color:var(--g);background:var(--gp);color:var(--gd)}
 </style>
 </head>
 <body>
@@ -236,8 +286,10 @@ let LS          = null;   // lineup builder working state
 let dragIdx     = null;
 let setupInnings = 6;
 let selPlayers  = new Set();
-let cache       = { teams:[], lineups:[] };
+let cache       = { teams:[], lineups:[], games:[] };
 let unsubs      = [];
+let AG          = null;   // active game
+let sgOrder     = [];     // score-setup batting order selection
 
 // ── HELPERS ───────────────────────────────────────────────────────
 function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2) }
@@ -252,9 +304,11 @@ function setupListeners(){
     .onSnapshot(snap=>{ cache.teams=snap.docs.map(d=>d.data()); if(authReady)render() });
   const u2 = db.collection(`users/${u}/lineups`).orderBy('date','desc')
     .onSnapshot(snap=>{ cache.lineups=snap.docs.map(d=>d.data()); if(authReady)render() });
-  unsubs=[u1,u2];
+  const u3 = db.collection(`users/${u}/games`).orderBy('date','desc')
+    .onSnapshot(snap=>{ cache.games=snap.docs.map(d=>d.data()); if(authReady)render() });
+  unsubs=[u1,u2,u3];
 }
-function teardownListeners(){ unsubs.forEach(u=>u()); unsubs=[]; cache={teams:[],lineups:[]} }
+function teardownListeners(){ unsubs.forEach(u=>u()); unsubs=[]; cache={teams:[],lineups:[],games:[]} }
 
 // ── STORE ─────────────────────────────────────────────────────────
 const S = {
@@ -305,6 +359,18 @@ const S = {
   async setScore(id,ourScore,theirScore){
     cache.lineups=cache.lineups.map(l=>l.id===id?{...l,ourScore,theirScore}:l);
     await db.doc(`users/${currentUser.uid}/lineups/${id}`).update({ourScore,theirScore});
+  },
+
+  games()    { return cache.games },
+  game(id)   { return cache.games.find(g=>g.id===id)||null },
+  async saveGame(g){
+    const idx=cache.games.findIndex(x=>x.id===g.id);
+    if(idx>=0)cache.games[idx]=g; else cache.games.unshift(g);
+    await db.doc(`users/${currentUser.uid}/games/${g.id}`).set(g);
+  },
+  async deleteGame(id){
+    cache.games=cache.games.filter(g=>g.id!==id);
+    await db.doc(`users/${currentUser.uid}/games/${id}`).delete();
   }
 };
 
@@ -315,12 +381,17 @@ function buildPage(){
   if(!authReady) return`<div class="loading-screen"><div class="loading-ball">⚾</div><p>Loading…</p></div>`;
   if(!currentUser){ return page==='register'?pageRegister():pageLogin() }
   switch(page){
-    case 'profile': return pageProfile();
-    case 'teams':   return pageTeams();
-    case 'team':    return pageTeam();
-    case 'setup':   return pageSetup();
-    case 'build':   return pageBuild();
-    default:        return pageHome();
+    case 'profile':      return pageProfile();
+    case 'teams':        return pageTeams();
+    case 'team':         return pageTeam();
+    case 'setup':        return pageSetup();
+    case 'build':        return pageBuild();
+    case 'score':        return pageScore();
+    case 'score-setup':  return pageScoreSetup();
+    case 'game':         return pageGame();
+    case 'game-stats':   return pageGameStats();
+    case 'game-summary': return pageGameSummary();
+    default:             return pageHome();
   }
 }
 
@@ -493,6 +564,11 @@ function pageHome(){
         <span class="hc-icon">📋</span>
         <div class="hc-title">Set Lineup</div>
         <div class="hc-desc">Build today's batting order and fielding positions inning by inning</div>
+      </button>
+      <button class="home-card home-card-blue" onclick="nav('score')">
+        <span class="hc-icon">🏟️</span>
+        <div class="hc-title">Score a Game</div>
+        <div class="hc-desc">Track live at-bats, stats, and save your game results</div>
       </button>
     </div>
   </div>`;
@@ -995,6 +1071,499 @@ function printLineupById(lid){
   const w=window.open('','_blank','width=960,height=680');
   if(!w){alert('Please allow popups to generate the PDF.');return}
   w.document.write(buildPrintHtml(src)); w.document.close();
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  PAGE: SCORE INTRO
+// ══════════════════════════════════════════════════════════════════
+function pageScore(){
+  const hasTeams=S.teams().length>0;
+  const hasLineups=cache.lineups.length>0;
+  const games=S.games().slice(0,5);
+  return`${navbar('Score a Game')}
+  <div class="main">
+    <div class="ph"><h1>Score a Game</h1><p>Track live at-bats, pitching and save results</p></div>
+    <div class="home-cards" style="margin-top:0">
+      <button class="home-card home-card-green" onclick="${hasTeams?`nav('score-setup',{mode:'new'})`:'alert(\"Create a team first.\")'}" style="${!hasTeams?'opacity:.5;cursor:not-allowed':''}">
+        <span class="hc-icon">📋</span>
+        <div class="hc-title">New Lineup</div>
+        <div class="hc-desc">Pick players from your roster for today's game</div>
+      </button>
+      <button class="home-card home-card-yellow" onclick="${hasLineups?`nav('score-setup',{mode:'existing'})`:'alert(\"No saved lineups yet.\")'}" style="${!hasLineups?'opacity:.5;cursor:not-allowed':''}">
+        <span class="hc-icon">📂</span>
+        <div class="hc-title">Use Saved Lineup</div>
+        <div class="hc-desc">Load a lineup from your lineup history</div>
+      </button>
+    </div>
+    ${!hasTeams?`<div class="card mt2" style="text-align:center;padding:1.5rem"><p class="text-muted">Create a team first to start scoring.</p><button class="btn btn-primary mt1" onclick="nav('teams')">Go to Teams</button></div>`:''}
+    ${games.length>0?`<div class="card" style="margin-top:1rem">
+      <div class="card-title">Recent Games</div>
+      ${games.map(g=>`<div class="flex-spread" style="padding:.5rem 0;border-bottom:1px solid var(--c1)">
+        <div>
+          <div style="font-weight:600;color:var(--gd)">${esc(g.teamName)} vs ${esc(g.opponent)}</div>
+          <div class="text-sm text-muted">${fmtDate(g.date)}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:.5rem">
+          <span class="score-badge">${g.score.us} – ${g.score.them}</span>
+          <button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="delGame('${g.id}')">🗑</button>
+        </div>
+      </div>`).join('')}
+    </div>`:''}
+  </div>`;
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  PAGE: SCORE SETUP
+// ══════════════════════════════════════════════════════════════════
+function pageScoreSetup(){
+  const mode=pgData.mode||'new';
+  const today=new Date().toISOString().split('T')[0];
+
+  if(mode==='existing'){
+    const lineups=cache.lineups;
+    const rows=lineups.length===0
+      ?`<div class="empty-state">📋<p>No saved lineups yet — build one first!</p></div>`
+      :lineups.map(l=>{
+          const t=S.team(l.teamId);
+          return`<div class="team-card" style="cursor:pointer;margin-bottom:.5rem" onclick="startGameFromLineup('${l.id}')">
+            <div class="flex-spread">
+              <div>
+                <div class="tc-name">${esc(t?t.name:'?')} vs ${esc(l.opponent||'TBD')}</div>
+                <div class="tc-meta">${fmtDate(l.date)} &bull; ${(l.battingOrder||[]).length} batters</div>
+              </div>
+              <span class="btn btn-primary btn-sm">Use &rarr;</span>
+            </div>
+          </div>`;
+        }).join('');
+    return`${navbar('Score a Game')}
+    <div class="main">
+      <button class="btn btn-ghost mb1" onclick="nav('score')">&#8592; Back</button>
+      <div class="ph"><h1>Select Lineup</h1></div>
+      ${rows}
+    </div>`;
+  }
+
+  const teams=S.teams();
+  return`${navbar('Score a Game')}
+  <div class="main">
+    <button class="btn btn-ghost mb1" onclick="nav('score')">&#8592; Back</button>
+    <div class="ph"><h1>New Game Setup</h1></div>
+    <div class="card">
+      <div class="fg"><label class="label">Team</label>
+        <select id="sg-team" class="inp sel" onchange="onScoreTeamChange()">
+          <option value="">&#8212; Select team &#8212;</option>
+          ${teams.map(t=>`<option value="${t.id}">${esc(t.name)}</option>`).join('')}
+        </select></div>
+      <div class="fg"><label class="label">Opponent</label>
+        <input id="sg-opp" class="inp" type="text" placeholder="Opponent team name" maxlength="50"></div>
+      <div class="fg"><label class="label">Date</label>
+        <input id="sg-date" class="inp" type="date" value="${today}"></div>
+      <div class="fg"><label class="label">Who bats first?</label>
+        <div class="radio-grp">
+          <div class="radio-opt"><input type="radio" name="sg-bf" id="sg-bf-us" value="us" checked><label for="sg-bf-us">We bat first</label></div>
+          <div class="radio-opt"><input type="radio" name="sg-bf" id="sg-bf-them" value="them"><label for="sg-bf-them">They bat first</label></div>
+        </div></div>
+    </div>
+    <div class="card" id="sg-psel" style="display:none">
+      <div class="card-title">Select Batting Order <span id="sg-badge" class="badge">0 selected</span></div>
+      <p class="text-sm text-muted mb1">Tap players in batting order. Tap again to remove.</p>
+      <div class="pchecks" id="sg-checks"></div>
+    </div>
+    <div class="row" style="justify-content:flex-end;gap:.75rem;margin-top:1rem">
+      <button class="btn btn-ghost" onclick="nav('score')">Cancel</button>
+      <button class="btn btn-secondary btn-lg" onclick="startNewGame()">&#9918; Start Game &rarr;</button>
+    </div>
+  </div>`;
+}
+
+function onScoreTeamChange(){
+  const tid=document.getElementById('sg-team').value;
+  const card=document.getElementById('sg-psel');
+  if(!tid){card.style.display='none';return}
+  const t=S.team(tid);
+  if(!t){card.style.display='none';return}
+  card.style.display='block';
+  sgOrder=[];
+  renderSgChecks(t);
+}
+function renderSgChecks(t){
+  document.getElementById('sg-badge').textContent=sgOrder.length+' selected';
+  document.getElementById('sg-checks').innerHTML=t.players.map(p=>{
+    const idx=sgOrder.indexOf(p.id); const sel=idx>=0;
+    return`<div class="pchk${sel?' sel':''}" id="sgck-${p.id}" onclick="toggleSgPlayer('${p.id}','${t.id}')">
+      <span class="circle" id="sgci-${p.id}">${sel?idx+1:''}</span>
+      <span>${esc(p.name)}</span>
+    </div>`;
+  }).join('');
+}
+function toggleSgPlayer(pid,tid){
+  const idx=sgOrder.indexOf(pid);
+  if(idx>=0) sgOrder.splice(idx,1);
+  else { if(sgOrder.length>=12){alert('Maximum 12 batters.');return} sgOrder.push(pid) }
+  const t=S.team(tid); if(t) renderSgChecks(t);
+}
+
+function startNewGame(){
+  const tid=document.getElementById('sg-team')?.value;
+  const opp=document.getElementById('sg-opp')?.value.trim();
+  const date=document.getElementById('sg-date')?.value;
+  const weGoFirst=document.querySelector('input[name="sg-bf"]:checked')?.value==='us';
+  if(!tid){alert('Please select a team.');return}
+  if(!opp){alert('Please enter an opponent name.');return}
+  if(sgOrder.length<2){alert('Select at least 2 players in batting order.');return}
+  const t=S.team(tid); if(!t)return;
+  const lineup=sgOrder.map(pid=>t.players.find(p=>p.id===pid)).filter(Boolean);
+  AG=initAG(tid,t.name,opp,date||new Date().toISOString().split('T')[0],lineup,weGoFirst);
+  sgOrder=[]; nav('game');
+}
+
+function startGameFromLineup(lid){
+  const l=S.lineup(lid); if(!l)return;
+  const t=S.team(l.teamId); if(!t)return;
+  const opp=prompt('Opponent name:',l.opponent||'');
+  if(opp===null)return;
+  const lineup=(l.battingOrder||[]).map(pid=>(l.selectedPlayers||[]).find(p=>p.id===pid)).filter(Boolean);
+  AG=initAG(t.id,t.name,opp||l.opponent||'Opponent',new Date().toISOString().split('T')[0],lineup,true);
+  nav('game');
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  GAME: STATE HELPERS
+// ══════════════════════════════════════════════════════════════════
+function initAG(teamId,teamName,opponent,date,lineup,weGoFirst){
+  return{
+    id:uid(),teamId,teamName,opponent,date,weGoFirst,lineup,
+    currentBatterIdx:0,outs:0,currentHalf:0,
+    isComplete:false,
+    score:{us:0,them:0},
+    halfScores:[],currentHalfRuns:0,
+    atBats:Object.fromEntries(lineup.map(p=>[p.id,{ab:0,h:0,s:0,d:0,t:0,hr:0,k:0,bb:0,rbi:0}])),
+    pitcherStats:{},
+    currentPitchCount:{b:0,s:0},
+    currentPitcherId:null,
+    snapshot:null
+  };
+}
+function agIsBatting(){ return AG.weGoFirst?(AG.currentHalf%2===0):(AG.currentHalf%2===1) }
+function agInning()   { return Math.floor(AG.currentHalf/2)+1 }
+
+function saveSnap(){
+  AG.snapshot=JSON.stringify({
+    currentBatterIdx:AG.currentBatterIdx,outs:AG.outs,currentHalf:AG.currentHalf,
+    score:AG.score,halfScores:AG.halfScores,currentHalfRuns:AG.currentHalfRuns,
+    atBats:AG.atBats,pitcherStats:AG.pitcherStats,
+    currentPitchCount:AG.currentPitchCount,currentPitcherId:AG.currentPitcherId
+  });
+}
+function undoLast(){
+  if(!AG?.snapshot){alert('Nothing to undo.');return}
+  const s=JSON.parse(AG.snapshot);
+  Object.assign(AG,s); AG.snapshot=null; render();
+}
+
+// ── BATTING ───────────────────────────────────────────────────────
+function recordAtBat(type){
+  if(!AG||AG.isComplete)return;
+  if(type==='K'||type==='OUT'){ saveSnap(); doAtBat(type,0); }
+  else showRbiPick(type);
+}
+function showRbiPick(type){
+  const names={'1B':'Single','2B':'Double','3B':'Triple','HR':'Home Run','BB':'Walk'};
+  document.getElementById('modal-root').innerHTML=`
+  <div class="moverlay">
+    <div class="modal">
+      <div class="rbi-wrap">
+        <div class="rbi-title">${names[type]||type} &mdash; RBIs?</div>
+        <div class="rbi-row">
+          ${[0,1,2,3,4].map(n=>`<button class="rbi-btn" onclick="pickRbi('${type}',${n})">${n}</button>`).join('')}
+        </div>
+        <button class="btn btn-ghost w100 btn-sm" onclick="closeModal()">Cancel</button>
+      </div>
+    </div>
+  </div>`;
+}
+function pickRbi(type,rbi){ closeModal(); saveSnap(); doAtBat(type,rbi); }
+function doAtBat(type,rbi){
+  if(!AG)return;
+  const idx=AG.currentBatterIdx%AG.lineup.length;
+  const batter=AG.lineup[idx];
+  const st=AG.atBats[batter.id]; if(!st)return;
+  if(type==='K')     {st.ab++;st.k++;AG.outs++;}
+  else if(type==='OUT'){st.ab++;AG.outs++;}
+  else if(type==='BB'){st.bb++;st.rbi+=rbi;AG.score.us+=rbi;AG.currentHalfRuns+=rbi;}
+  else if(type==='1B'){st.ab++;st.h++;st.s++;st.rbi+=rbi;AG.score.us+=rbi;AG.currentHalfRuns+=rbi;}
+  else if(type==='2B'){st.ab++;st.h++;st.d++;st.rbi+=rbi;AG.score.us+=rbi;AG.currentHalfRuns+=rbi;}
+  else if(type==='3B'){st.ab++;st.h++;st.t++;st.rbi+=rbi;AG.score.us+=rbi;AG.currentHalfRuns+=rbi;}
+  else if(type==='HR'){st.ab++;st.h++;st.hr++;st.rbi+=rbi;AG.score.us+=rbi;AG.currentHalfRuns+=rbi;}
+  AG.currentBatterIdx++;
+  if(AG.outs>=3) promptEndHalf(); else render();
+}
+
+// ── FIELDING ──────────────────────────────────────────────────────
+function recordPitch(type){
+  if(!AG||AG.isComplete)return;
+  saveSnap();
+  const pc=AG.currentPitchCount;
+  if(type==='BALL'){
+    pc.b++;
+    if(pc.b>=4){recordFieldingResult('BB');return}
+  } else if(type==='STRIKE'){
+    pc.s++;
+    if(pc.s>=3){recordFieldingResult('K');return}
+  } else if(type==='HIT'){recordFieldingResult('HIT');return}
+  else if(type==='OUT'){recordFieldingResult('OUT');return}
+  render();
+}
+function recordFieldingResult(type){
+  const pid=AG.currentPitcherId;
+  if(pid){
+    if(!AG.pitcherStats[pid]) AG.pitcherStats[pid]={outs:0,k:0,bb:0,h:0,r:0};
+    const ps=AG.pitcherStats[pid];
+    if(type==='K'){ps.k++;ps.outs++;AG.outs++;}
+    else if(type==='OUT'){ps.outs++;AG.outs++;}
+    else if(type==='BB'){ps.bb++;}
+    else if(type==='HIT'){ps.h++;}
+  } else {
+    if(type==='K'||type==='OUT') AG.outs++;
+  }
+  AG.currentPitchCount={b:0,s:0};
+  if(AG.outs>=3) promptEndHalf(); else render();
+}
+function addThemRun(){
+  saveSnap();
+  AG.score.them++; AG.currentHalfRuns++;
+  if(AG.currentPitcherId&&AG.pitcherStats[AG.currentPitcherId])
+    AG.pitcherStats[AG.currentPitcherId].r++;
+  render();
+}
+function setPitcher(pid){
+  AG.currentPitcherId=pid||null;
+  if(pid&&!AG.pitcherStats[pid]) AG.pitcherStats[pid]={outs:0,k:0,bb:0,h:0,r:0};
+}
+
+// ── HALF INNING ───────────────────────────────────────────────────
+function promptEndHalf(){
+  const batting=agIsBatting();
+  document.getElementById('modal-root').innerHTML=`
+  <div class="moverlay">
+    <div class="modal">
+      <div class="modal-title">3 Outs &mdash; Half Inning Over</div>
+      <p class="text-sm text-muted" style="margin:.5rem 0 1rem">
+        ${batting?'Our':'Their'} half of inning ${agInning()} is complete.
+        ${AG.currentHalfRuns} run${AG.currentHalfRuns!==1?'s':''} scored.
+      </p>
+      <div class="row gap1" style="justify-content:flex-end">
+        <button class="btn btn-primary" onclick="doEndHalf()">Next Half &rarr;</button>
+      </div>
+    </div>
+  </div>`;
+}
+function doEndHalf(){
+  closeModal(); if(!AG)return;
+  AG.halfScores.push({half:AG.currentHalf,inning:agInning(),batting:agIsBatting(),runs:AG.currentHalfRuns});
+  AG.outs=0; AG.currentHalfRuns=0; AG.currentHalf++;
+  AG.currentPitchCount={b:0,s:0}; render();
+}
+function manualEndHalf(){
+  if(!confirm('End this half-inning?'))return;
+  saveSnap(); doEndHalf();
+}
+
+// ── END GAME ──────────────────────────────────────────────────────
+async function doEndGame(){
+  if(!AG)return;
+  if(!confirm('End the game and save stats?'))return;
+  AG.isComplete=true;
+  const rec={
+    id:AG.id,teamId:AG.teamId,teamName:AG.teamName,
+    opponent:AG.opponent,date:AG.date,
+    score:AG.score,halfScores:AG.halfScores,
+    atBats:AG.atBats,pitcherStats:AG.pitcherStats,
+    lineup:AG.lineup,createdAt:new Date().toISOString()
+  };
+  nav('game-summary');
+  await S.saveGame(rec);
+}
+async function delGame(id){
+  if(!confirm('Delete this game record?'))return;
+  await S.deleteGame(id); render();
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  PAGE: GAME
+// ══════════════════════════════════════════════════════════════════
+function pageGame(){
+  if(!AG){nav('score');return''}
+  const batting=agIsBatting();
+  const inning=agInning();
+  const batIdx=AG.currentBatterIdx%AG.lineup.length;
+  const batter=AG.lineup[batIdx];
+  const bst=batter?AG.atBats[batter.id]:null;
+  const outPips=[0,1,2].map(i=>`<span class="out-pip${i<AG.outs?' on':''}"></span>`).join('');
+
+  let content;
+  if(batting){
+    content=`
+      <div class="cur-batter">
+        <div class="cb-num">${batIdx+1}</div>
+        <div>
+          <div class="cb-name">${esc(batter?.name||'?')}</div>
+          <div class="cb-stat">${bst&&bst.ab>0?`${bst.h}-for-${bst.ab}${bst.rbi>0?` &bull; ${bst.rbi} RBI`:''}${bst.hr>0?` &bull; ${bst.hr} HR`:''}`:'First at-bat'}</div>
+        </div>
+      </div>
+      <div class="bat-grid">
+        <button class="bat-btn bbS" onclick="recordAtBat('1B')"><span>1B</span><span class="bat-lbl">Single</span></button>
+        <button class="bat-btn bbD" onclick="recordAtBat('2B')"><span>2B</span><span class="bat-lbl">Double</span></button>
+        <button class="bat-btn bbT" onclick="recordAtBat('3B')"><span>3B</span><span class="bat-lbl">Triple</span></button>
+        <button class="bat-btn bbHR" onclick="recordAtBat('HR')"><span>HR</span><span class="bat-lbl">Home Run</span></button>
+      </div>
+      <div class="bat-grid2">
+        <button class="bat-btn bbK" onclick="recordAtBat('K')"><span>K</span><span class="bat-lbl">Strikeout</span></button>
+        <button class="bat-btn bbO" onclick="recordAtBat('OUT')"><span>OUT</span><span class="bat-lbl">Out</span></button>
+        <button class="bat-btn bbBB" onclick="recordAtBat('BB')"><span>BB</span><span class="bat-lbl">Walk</span></button>
+      </div>`;
+  } else {
+    const pc=AG.currentPitchCount;
+    const ballPips=[0,1,2,3].map(i=>`<span class="p-pip${i<pc.b?' ball':''}"></span>`).join('');
+    const strikePips=[0,1,2].map(i=>`<span class="p-pip${i<pc.s?' strike':''}"></span>`).join('');
+    content=`
+      <div class="fg" style="margin-bottom:.75rem">
+        <label class="label">Our Pitcher</label>
+        <select id="pitcher-sel" class="inp sel" onchange="setPitcher(this.value)">
+          <option value="">&#8212; Select pitcher &#8212;</option>
+          ${AG.lineup.map(p=>`<option value="${p.id}"${p.id===AG.currentPitcherId?' selected':''}>${esc(p.name)}</option>`).join('')}
+        </select>
+      </div>
+      <div class="pitch-bar">
+        <span class="pitch-lbl">Balls</span><div class="pitch-pips">${ballPips}</div>
+        <span class="pitch-lbl" style="margin-left:.6rem">Strikes</span><div class="pitch-pips">${strikePips}</div>
+      </div>
+      <div class="pitch-grid">
+        <button class="pitch-btn pbStr" onclick="recordPitch('STRIKE')">Strike</button>
+        <button class="pitch-btn pbBall" onclick="recordPitch('BALL')">Ball</button>
+        <button class="pitch-btn pbHit" onclick="recordPitch('HIT')">Hit</button>
+        <button class="pitch-btn pbOut" onclick="recordPitch('OUT')">Out</button>
+      </div>
+      <div class="run-bar">
+        <span class="run-bar-lbl">Their runs this half: ${AG.currentHalfRuns}</span>
+        <button class="run-add-btn" onclick="addThemRun()" title="Add opponent run">+1</button>
+      </div>`;
+  }
+
+  return`${navbar()}
+  <div class="game-hdr">
+    <div class="game-scoreline">
+      <div><div class="game-team">${esc(AG.teamName)}</div><div class="game-pts">${AG.score.us}</div></div>
+      <div class="game-sep">&ndash;</div>
+      <div><div class="game-team">${esc(AG.opponent)}</div><div class="game-pts">${AG.score.them}</div></div>
+    </div>
+    <div class="game-info">Inning ${inning} &bull; ${batting?'Our at-bat &#9918;':'Their at-bat &#129380;'} &bull; <span class="game-outs">${outPips}</span> out${AG.outs!==1?'s':''}</div>
+  </div>
+  <div class="main">
+    ${content}
+    <div class="game-actions">
+      <button class="btn btn-ghost btn-sm" onclick="undoLast()">&#8617; Undo</button>
+      <button class="btn btn-outline btn-sm" onclick="nav('game-stats')">&#128202; Stats</button>
+      <button class="btn btn-outline btn-sm" onclick="manualEndHalf()">&#8635; End Half</button>
+      <button class="btn btn-danger btn-sm" onclick="doEndGame()">&#127937; End Game</button>
+    </div>
+  </div>`;
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  PAGE: GAME STATS
+// ══════════════════════════════════════════════════════════════════
+function pageGameStats(){
+  if(!AG){nav('score');return''}
+  const batRows=AG.lineup.map((p,i)=>{
+    const s=AG.atBats[p.id]||{};
+    const avg=s.ab>0?(s.h/s.ab).toFixed(3).replace(/^0/,''):'.000';
+    return`<tr><td>${i+1}. ${esc(p.name)}</td>
+      <td>${s.ab||0}</td><td>${s.h||0}</td><td>${s.s||0}</td><td>${s.d||0}</td>
+      <td>${s.t||0}</td><td>${s.hr||0}</td><td>${s.k||0}</td><td>${s.bb||0}</td>
+      <td>${s.rbi||0}</td><td>${avg}</td></tr>`;
+  }).join('');
+  const pitEntries=Object.entries(AG.pitcherStats||{});
+  const pitRows=pitEntries.map(([pid,s])=>{
+    const pl=AG.lineup.find(p=>p.id===pid);
+    const ipStr=`${Math.floor((s.outs||0)/3)}.${(s.outs||0)%3}`;
+    return`<tr><td>${esc(pl?pl.name:'?')}</td>
+      <td>${ipStr}</td><td>${s.k||0}</td><td>${s.bb||0}</td><td>${s.h||0}</td><td>${s.r||0}</td></tr>`;
+  }).join('');
+  return`${navbar('Game Stats')}
+  <div class="main">
+    <div class="flex-spread mb1">
+      <button class="btn btn-ghost" onclick="nav('game')">&#8592; Back to Game</button>
+      <span class="score-badge" style="font-size:1rem;padding:.3rem 1rem">${AG.score.us} &ndash; ${AG.score.them}</span>
+    </div>
+    <div class="card">
+      <div class="card-title">Batting &mdash; ${esc(AG.teamName)}</div>
+      <div class="stat-wrap"><table class="stat-tbl">
+        <thead><tr><th>Player</th><th>AB</th><th>H</th><th>1B</th><th>2B</th><th>3B</th><th>HR</th><th>K</th><th>BB</th><th>RBI</th><th>AVG</th></tr></thead>
+        <tbody>${batRows||'<tr><td colspan="11" style="text-align:center;padding:1rem;color:var(--c6)">No at-bats yet.</td></tr>'}</tbody>
+      </table></div>
+    </div>
+    ${pitRows?`<div class="card">
+      <div class="card-title">Pitching &mdash; ${esc(AG.teamName)}</div>
+      <div class="stat-wrap"><table class="stat-tbl">
+        <thead><tr><th>Pitcher</th><th>IP</th><th>K</th><th>BB</th><th>H</th><th>R</th></tr></thead>
+        <tbody>${pitRows}</tbody>
+      </table></div>
+    </div>`:''}
+  </div>`;
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  PAGE: GAME SUMMARY
+// ══════════════════════════════════════════════════════════════════
+function pageGameSummary(){
+  if(!AG){nav('score');return''}
+  const won=AG.score.us>AG.score.them;
+  const tied=AG.score.us===AG.score.them;
+  const sorted=AG.lineup.map(p=>({...AG.atBats[p.id],name:p.name}))
+    .filter(s=>s.ab>0).sort((a,b)=>b.h-a.h);
+  const mvp=sorted[0];
+  const maxInning=agInning();
+  const innRows=[];
+  for(let i=1;i<=maxInning;i++){
+    const usH=AG.halfScores.find(h=>h.inning===i&&h.batting);
+    const thH=AG.halfScores.find(h=>h.inning===i&&!h.batting);
+    innRows.push(`<tr>
+      <td style="font-weight:700;color:var(--gd)">${i}</td>
+      <td>${usH!=null?usH.runs:'&mdash;'}</td>
+      <td>${thH!=null?thH.runs:'&mdash;'}</td>
+    </tr>`);
+  }
+  return`${navbar('Game Summary')}
+  <div class="main">
+    <div class="card" style="text-align:center;padding:2rem">
+      <div style="font-size:2.5rem">${won?'&#127942;':tied?'&#129309;':'&#128580;'}</div>
+      <div style="font-size:1.5rem;font-weight:900;color:var(--gd);margin:.5rem 0">${won?'Victory!':tied?'Tie Game':'Game Over'}</div>
+      <div style="font-size:2.5rem;font-weight:900;color:var(--gd)">${AG.score.us} <span style="color:var(--c4)">&ndash;</span> ${AG.score.them}</div>
+      <div class="text-muted mt1">${esc(AG.teamName)} vs ${esc(AG.opponent)} &bull; ${fmtDate(AG.date)}</div>
+    </div>
+    ${innRows.length>0?`<div class="card">
+      <div class="card-title">Innings</div>
+      <div style="overflow-x:auto"><table class="stat-tbl">
+        <thead><tr><th>Inn</th><th>${esc(AG.teamName)}</th><th>${esc(AG.opponent)}</th></tr></thead>
+        <tbody>${innRows.join('')}</tbody>
+        <tfoot><tr style="background:var(--yl)">
+          <td style="font-weight:800;color:var(--gd)">Total</td>
+          <td style="font-weight:800;color:var(--gd)">${AG.score.us}</td>
+          <td style="font-weight:800;color:var(--gd)">${AG.score.them}</td>
+        </tr></tfoot>
+      </table></div>
+    </div>`:''}
+    ${mvp?`<div class="card">
+      <div class="card-title">Top Performer</div>
+      <div style="font-size:1rem;font-weight:700;color:var(--gd)">${esc(mvp.name)}</div>
+      <div class="text-sm text-muted">${mvp.h}-for-${mvp.ab}${mvp.hr>0?` &bull; ${mvp.hr} HR`:''} &bull; ${mvp.rbi} RBI</div>
+    </div>`:''}
+    <div class="flex-spread mt2">
+      <button class="btn btn-ghost" onclick="nav('game-stats')">&#128202; Full Stats</button>
+      <button class="btn btn-primary" onclick="AG=null;nav('score')">Done</button>
+    </div>
+  </div>`;
 }
 
 // ══════════════════════════════════════════════════════════════════
